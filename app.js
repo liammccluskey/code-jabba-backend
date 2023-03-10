@@ -8,6 +8,17 @@ require('dotenv/config')
 app.use(cors())
 app.use(express.json())
 
+app.use((req, res, next) => {
+    console.log(req.headers)
+    const apiKey = req.headers['heroku-api-key']
+    if (apiKey !== process.env.HEROKU_API_KEY) {
+        res.status(500).send({message: 'Invalid api key.'})
+        return
+    } else {
+        next()
+    }
+})
+
 // Routes
 const usersRoute = require('./routes/users')
 app.use('/users', usersRoute)
