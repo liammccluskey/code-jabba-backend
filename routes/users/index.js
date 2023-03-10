@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const User = require('../models/User')
-const Activity = require('../models/Activity')
+const User = require('../../models/User')
 const moment = require('moment')
 require('dotenv/config')
 
