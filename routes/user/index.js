@@ -15,11 +15,7 @@ router.get('/uid/:uid', async (req, res) => {
         const user = await User.findOne({uid})
             .lean()
 
-        if (user) {
-            res.json(user)
-        } else {
-            res.status(500).json({message: 'There are no users with that uid.'})
-        }
+        res.json(user)
     } catch (error) {
         res.status(500).json({message: error.message})
     }
@@ -32,12 +28,8 @@ router.get('/_id/:_id', async (req, res) => {
     try {
         const user = await User.findById(_id)
             .lean()
-        
-        if (user) {
-            res.json(user)
-        } else {
-            res.status(500).json({message: 'There are no users with that _id.'})
-        }
+
+        res.json(user)
     } catch (error) {
         res.status(500).json({message: error.message})
     }

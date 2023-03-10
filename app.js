@@ -10,7 +10,7 @@ app.use(express.json())
 
 app.use((req, res, next) => {
     console.log(req.headers)
-    const apiKey = req.headers['heroku-api-key']
+    const apiKey = req.headers['x-heroku-api-key']
     if (apiKey !== process.env.HEROKU_API_KEY) {
         res.status(500).send({message: 'Invalid api key.'})
         return
