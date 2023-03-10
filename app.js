@@ -16,8 +16,8 @@ app.use(cors())
 app.use(express.json())
 
 app.use((req, res, next) => {
-    console.log(req.headers)
-    const apiKey = req.headers['x-heroku-api-key']
+    const apiKey = req.headers['heroku-api-key']
+
     if (apiKey !== process.env.HEROKU_API_KEY) {
         res.status(500).send({message: 'Invalid api key.'})
         return
@@ -31,11 +31,11 @@ const usersRoute = require('./routes/users')
 app.use('/users', usersRoute)
 
 mongoose.connect(
-    process.env.DB_CONNECTION,
+    process.env.MONGO_DB_CONNECTION,
     { 
         useNewUrlParser: true, 
         useUnifiedTopology: true,
     },
 )
 
-const server = app.listen(process.env.PORT || 3000)
+const server = app.listen(process.env.PORT || 3001)
