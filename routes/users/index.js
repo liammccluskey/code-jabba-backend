@@ -95,7 +95,7 @@ router.post('/', async (req, res) => {
 
 // DELETE: delete a user
 router.delete('/', async (req, res) => {
-    const {uid, _id} = req.params
+    const {uid, _id} = req.query
 
     try {
         await User.findOneAndDelete({uid, _id})
