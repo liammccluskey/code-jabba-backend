@@ -6,13 +6,6 @@ require('dotenv/config')
 
 // PATH: /users
 
-// TEST
-router.get('/test/:testID', async (req, res) => {
-    const {testID} = req.params || 'null'
-    console.log({testID})
-    res.json({message: 'test'})
-})
-
 // GET: a user on login by firebase uid
 router.get('/uid/:uid', async (req, res) => {
     const {uid} = req.params
