@@ -44,7 +44,7 @@ router.get('/_id/:_id', async (req, res) => {
 // GET: search for a user
 /*
     supported fields: displayName
-    required field: page, pagesize
+    required fields: page, pagesize
 */
 router.get('/search', async (req, res) => {
     const {pagesize, page, displayName} = req.query
@@ -96,6 +96,18 @@ router.post('/', async (req, res) => {
         res.json({message: `Welcome to ${process.env.SITE_NAME}`})
     } catch(error) {
         console.log(error)
+        res.status(500).json({message: error.message})
+    }
+})
+
+// DELETE: delete a user
+router.delete('/', async (req, res) => {
+    const {uid, _id} = req.params
+
+    try {
+        await User.findOneAndDelete({uid, _id})
+        res.json({message: 'User deleted.'})
+    } catch (error) {
         res.status(500).json({message: error.message})
     }
 })
