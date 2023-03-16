@@ -71,7 +71,7 @@ router.get('/search', async (req, res) => {
 
         res.json({
             users,
-            canLoadMore: !(users.count == pageSize),
+            canLoadMore: !(users.count < pageSize),
             pagesCount: Math.ceil(count / pageSize)
         })
     } catch (error) {
