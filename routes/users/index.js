@@ -18,11 +18,8 @@ router.get('/uid/:uid', async (req, res) => {
     try {
         const user = await User.findOne({uid})
             .lean()
-        if (user) {
-            res.json(user)
-        } else {
-            throw Error('No users matched those filters.')
-        }
+            
+        res.json(user)
     } catch (error) {
         res.status(500).json({message: error.message})
     }
