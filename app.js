@@ -5,14 +5,8 @@ const mongoose = require('mongoose')
 require('dotenv/config')
 
 // Middleware
+
 app.use(cors())
-
-// app.use((req, res, next) => {
-//     res.header("Access-Control-Allow-Origin", "*")
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-//     next()
-//   });
-
 app.use(express.json())
 
 app.use((req, res, next) => {
@@ -27,8 +21,12 @@ app.use((req, res, next) => {
 })
 
 // Routes
+
 const usersRoute = require('./routes/users')
 app.use('/users', usersRoute)
+
+const notificationsRoute = require('./routes/notifications')
+app.use('/notifications', notificationsRoute)
 
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,

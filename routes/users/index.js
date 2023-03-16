@@ -1,47 +1,62 @@
 const express = require('express')
 const router = express.Router()
-const User = require('../../models/User')
 const moment = require('moment')
 require('dotenv/config')
 
-// PATH: /users
+const User = require('../../models/User')
+const Notification = require('../../models/Notification')
+const DataConstants = require('../../constants/data')
+const NOTIFICATIONS = require('../../constants/notifications').NOTIFICATIONS
 
-// GET: a user on login by firebase uid
+
+// GET Routes
+
+// get a user on login by firebase uid
 router.get('/uid/:uid', async (req, res) => {
     const {uid} = req.params
 
     try {
         const user = await User.findOne({uid})
             .lean()
-
-        res.json(user)
+        if (user) {
+            res.json(user)
+        } else {
+            throw Error('No users matched those filters.')
+        }
     } catch (error) {
         res.status(500).json({message: error.message})
     }
 })
 
-// GET: a user by _id
+// get a user by _id
 router.get('/_id/:_id', async (req, res) => {
     const {_id} = req.params
 
     try {
         const user = await User.findById(_id)
             .lean()
-
-        res.json(user)
+        if (user) {
+            res.json(user)
+        } else {
+            throw Error('No users matched those filters.')
+        }
     } catch (error) {
         res.status(500).json({message: error.message})
     }
 })
 
-// GET: search for a user
+// search for a user
 /*
     supported fields: displayName
     required fields: page, pagesize
 */
 router.get('/search', async (req, res) => {
-    const {pagesize, page, displayName} = req.query
-    const pageSize = Math.min(50, pagesize)
+    const {
+        pagesize = DataConstants.PAGE_SIZES.userSearch,
+        page,
+        displayName
+    } = req.query
+    const pageSize = Math.min(DataConstants.MAX_PAGE_SIZE, pagesize)
 
     const query = {
         $text: {
@@ -58,48 +73,78 @@ router.get('/search', async (req, res) => {
             .lean()
 
         res.json({
-            users: users,
-            count: count
+            users,
+            canLoadMore: !(users.count == pageSize),
+            pagesCount: Math.ceil(count / pageSize)
         })
     } catch (error) {
         res.status(500).json({message: error.message})
     }
 })
 
-// PATCH: update a user
-router.patch('/:_id', async (req, res) => {
-    const {_id} = req.params
-    
-    try {
-        await User.findByIdAndUpdate(_id, {
-            $set: req.body
-        })
-        res.json({message: 'Changes saved.'})
-    } catch (error) {
-        res.status(500).json({message: error.message})
-    }
-})
+// POST Routes
 
-// POST: create a new user
+// create a new user
 router.post('/', async (req, res) => {
     const user = new User(req.body)
 
     try {
         await user.save()
         res.json({message: `Welcome to ${process.env.SITE_NAME}`})
+
+        try {
+            const notification = Notification({
+                ...NOTIFICATIONS.welcomeToSite,
+                user: user._id
+            })
+            await notification.save()
+        } catch (error) {
+            console.log(error)
+        }
     } catch(error) {
         console.log(error)
         res.status(500).json({message: error.message})
     }
 })
 
-// DELETE: delete a user
+// PATCH Routes
+
+// update a user
+router.patch('/:_id', async (req, res) => {
+    const {_id} = req.params
+    
+    try {
+        const user = await User.findByIdAndUpdate(_id, {
+            $set: req.body
+        })
+        if (user) {
+            res.json({message: 'Changes saved.'})
+        } else {
+            throw Error('No users matched those filters.')
+        }
+
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+// DELETE Routes
+
+// delete a user
 router.delete('/', async (req, res) => {
-    const {uid, _id} = req.query
+    const {uid, userID} = req.query
+    const filter = {
+        uid,
+        _id: userID
+    }
 
     try {
-        await User.findOneAndDelete({uid, _id})
-        res.json({message: 'User deleted.'})
+        const user = User.findOneAndDelete(filter)
+        if (user) {
+            res.json({message: 'User deleted.'})
+        } else {
+            throw Error('No users matched those filters.')
+        }
     } catch (error) {
         res.status(500).json({message: error.message})
     }
