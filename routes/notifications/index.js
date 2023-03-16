@@ -20,7 +20,7 @@ router.get('/user/:userID', async (req, res) => {
 
     try {
         const count = await Notification.countDocuments(filter)
-        const notifcations = await Notification.find(filter)
+        const notifications = await Notification.find(filter)
             .sort({createdAt: 1})
             .skip((page - 1)*pageSize)
             .limit(pageSize)
