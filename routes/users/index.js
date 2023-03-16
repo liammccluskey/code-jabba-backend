@@ -70,8 +70,8 @@ router.get('/search', async (req, res) => {
             .lean()
 
         res.json({
-            users,
-            canLoadMore: !(users.count < pageSize),
+            data: users,
+            canLoadMore: users.count == pageSize,
             pagesCount: Math.ceil(count / pageSize)
         })
     } catch (error) {

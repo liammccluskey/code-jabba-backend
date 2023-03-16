@@ -27,8 +27,8 @@ router.get('/user/:userID', async (req, res) => {
             .lean()
         
         res.json({
-            notifications,
-            canLoadMore: !(notifications.count < pageSize),
+            data: notifications,
+            canLoadMore: notifications.count == pageSize,
             pagesCount: Math.ceil(count / pageSize)
         })
     } catch (error) {
