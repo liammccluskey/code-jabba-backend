@@ -1,5 +1,43 @@
 const mongoose = require('mongoose')
 
+const ThemeSettingsSchema = mongoose.Schema({
+    themeColor: {
+        type: Number,
+        default: 0
+    },
+    tintColor: {
+        type: Number,
+        default: 0
+    }
+})
+
+const NotificationsSettingsSchema = mongoose.Schema({
+    generalEnabled: {
+        type: Boolean,
+        default: true
+    },
+    announcementsEnabled: {
+        type: Boolean,
+        default: true,
+    },
+    socialEnabled: {
+        type: Boolean,
+        default: true,
+    }
+})
+
+const SettingsSchema = mongoose.Schema({
+    theme: {
+        type: ThemeSettingsSchema
+    },
+    appNotifications: {
+        type: NotificationsSettingsSchema
+    },
+    emailNotifications: {
+        type: NotificationsSettingsSchema
+    }
+})
+
 const UserSchema = mongoose.Schema({
     // required
     uid: {
@@ -28,54 +66,7 @@ const UserSchema = mongoose.Schema({
 
     // default
     settings: {
-        type: Object,
-        required: false,
-        type: {
-            theme: {
-                type : {
-                    tintColor: {
-                        type: Number,
-                        default: 0
-                    },
-                    themeColor: {
-                        type: Number,
-                        default: 0
-                    },
-                }
-            },
-            appNotifications: {
-                type: {
-                    generalEnabled: {
-                        type: Boolean,
-                        default: true
-                    },
-                    announcementsEnabled: {
-                        type: Boolean,
-                        default: true,
-                    },
-                    socialEnabled: {
-                        type: Boolean,
-                        default: true,
-                    }
-                }
-            },
-            emailNotifications: {
-                type: {
-                    generalEnabled: {
-                        type: Boolean,
-                        default: true
-                    },
-                    announcementsEnabled: {
-                        type: Boolean,
-                        default: true,
-                    },
-                    socialEnabled: {
-                        type: Boolean,
-                        default: true,
-                    }
-                }
-            }
-        }
+        type: SettingsSchema
     }
 }, {timestamps: true})
 
