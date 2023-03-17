@@ -133,12 +133,12 @@ router.patch('/settings/:userID', async (req, res) => {
     const fieldPath = 'settings.' + path
 
     try {
-        const user = User.findByIdAndUpdate(userID,{
+        const user = await User.findByIdAndUpdate(userID, {
             $set: {
-                [fieldPath]: value
+                [fieldPath]: value,
             }
         })
-
+        
         if (user) {
             res.json({message: 'Changes saved.'})
         } else {

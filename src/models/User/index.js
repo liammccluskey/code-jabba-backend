@@ -1,26 +1,5 @@
 const mongoose = require('mongoose')
 
-const ThemeType = {
-    themeColor: {
-        type: Number
-    },
-    tintColor: {
-        type: Number
-    }
-}
-
-const NotificationsType = {
-    generalEnabled: {
-        type: Boolean,
-    },
-    announcementsEnabled: {
-        type: Boolean,
-    },
-    socialEnabled: {
-        type: Boolean,
-    }
-}
-
 const UserSchema = mongoose.Schema({
     // required
     uid: {
@@ -49,32 +28,42 @@ const UserSchema = mongoose.Schema({
 
     // default
     settings: {
-        required: false,
-        type: {
-            theme: {
-                type: ThemeType
+        theme: {
+            themeColor: {
+                type: Number,
+                default: 0
             },
-            appNotifications: {
-                type: NotificationsType
-            },
-            emailNotifications: {
-                type: NotificationsType
+            tintColor: {
+                type: Number,
+                default: 0
             }
         },
-        default: {
-            theme: {
-                themeColor: 0,
-                tintColor: 0
+        appNotifications: {
+            generalEnabled: {
+                type: Boolean,
+                default: true
             },
-            appNotifications: {
-                generalEnabled: true,
-                announcementsEnabled: true,
-                socialEnabled: true
+            announcementsEnabled: {
+                type: Boolean,
+                default: true
             },
-            emailNotifications: {
-                generalEnabled: true,
-                announcementsEnabled: false,
-                socialEnabled: false
+            socialEnabled: {
+                type: Boolean,
+                default: true
+            }
+        },
+        emailNotifications: {
+            generalEnabled: {
+                type: Boolean,
+                default: true
+            },
+            announcementsEnabled: {
+                type: Boolean,
+                default: false
+            },
+            socialEnabled: {
+                type: Boolean,
+                default: false
             }
         }
     }
