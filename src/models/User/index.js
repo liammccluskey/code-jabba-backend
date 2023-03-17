@@ -30,19 +30,21 @@ const UserSchema = mongoose.Schema({
     settings: {
         type: Object,
         required: false,
-        default: {
+        type: {
             theme: {
-                tintColor: {
-                    type: Number,
-                    default: 0
-                },
-                themeColor: {
-                    type: Number,
-                    default: 0
-                },
+                type : {
+                    tintColor: {
+                        type: Number,
+                        default: 0
+                    },
+                    themeColor: {
+                        type: Number,
+                        default: 0
+                    },
+                }
             },
-            notifications: {
-                app: {
+            appNotifications: {
+                type: {
                     generalEnabled: {
                         type: Boolean,
                         default: true
@@ -55,19 +57,21 @@ const UserSchema = mongoose.Schema({
                         type: Boolean,
                         default: true,
                     }
-                },
-                app: {
+                }
+            },
+            emailNotifications: {
+                type: {
                     generalEnabled: {
                         type: Boolean,
                         default: true
                     },
                     announcementsEnabled: {
                         type: Boolean,
-                        default: false,
+                        default: true,
                     },
                     socialEnabled: {
                         type: Boolean,
-                        default: false,
+                        default: true,
                     }
                 }
             }
