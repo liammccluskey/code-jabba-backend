@@ -1,15 +1,15 @@
 const mongoose = require('mongoose')
 
-const ThemeSettingsSchema = mongoose.Schema({
+const ThemeType = {
     themeColor: {
-        type: Number,
+        type: Number
     },
     tintColor: {
-        type: Number,
+        type: Number
     }
-})
+}
 
-const NotificationsSettingsSchema = mongoose.Schema({
+const NotificationsType = {
     generalEnabled: {
         type: Boolean,
     },
@@ -19,19 +19,7 @@ const NotificationsSettingsSchema = mongoose.Schema({
     socialEnabled: {
         type: Boolean,
     }
-})
-
-const SettingsSchema = mongoose.Schema({
-    theme: {
-        type: ThemeSettingsSchema
-    },
-    appNotifications: {
-        type: NotificationsSettingsSchema
-    },
-    emailNotifications: {
-        type: NotificationsSettingsSchema
-    }
-})
+}
 
 const UserSchema = mongoose.Schema({
     // required
@@ -61,7 +49,18 @@ const UserSchema = mongoose.Schema({
 
     // default
     settings: {
-        type: SettingsSchema,
+        required: false,
+        type: {
+            theme: {
+                type: ThemeType
+            },
+            appNotifications: {
+                type: NotificationsType
+            },
+            emailNotifications: {
+                type: NotificationsType
+            }
+        },
         default: {
             theme: {
                 themeColor: 0,
