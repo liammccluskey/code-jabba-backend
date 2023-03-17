@@ -2,8 +2,17 @@ const mongoose = require('mongoose')
 
 const NotificationSchema = mongoose.Schema({
     // required
-    title: {
-        type: String,
+    channel: {
+        type: {
+            id: {
+                type: String,
+                required: true
+            },
+            title: {
+                type: String,
+                required: true
+            }
+        },
         required: true,
     },
     message: {

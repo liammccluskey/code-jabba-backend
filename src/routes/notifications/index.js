@@ -29,7 +29,8 @@ router.get('/user/:userID', async (req, res) => {
         res.json({
             data: notifications,
             canLoadMore: notifications.count == pageSize,
-            pagesCount: Math.ceil(count / pageSize)
+            pagesCount: Math.ceil(count / pageSize),
+            totalCount: count
         })
     } catch (error) {
         res.status(500).json({message: error.message})
@@ -51,21 +52,21 @@ router.post('/', async (req, res) => {
 
 // PATCH Routes
 
-router.patch('/markasread/:notificationID', async (req, res) => {
-    const {notificationID} = req.params
-    const filter = {_id: notificationID}
+router.patch('/markasread', async (req, res) => {
+    const {notificationIDs} = req.body
+    const filter = {
+        _id: {
+            $in: notificationIDs
+        }
+    }
 
     try {
-        const notification = await Notification.findOneAndUpdate(filter, {
+        await Notification.updateMany(filter, {
             $set: {
                 isRead: true
             }
         })
-        if (notification) {
-            res.json({message: 'Marked notification as read.'})
-        } else {
-            throw Error('No notifications matched those filters.')
-        }
+        res.json({message: 'Marked notifications as read.'})
     } catch (error) {
         res.status(500).json({message: error.message})
     }

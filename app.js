@@ -22,10 +22,10 @@ app.use((req, res, next) => {
 
 // Routes
 
-const usersRoute = require('./routes/users')
+const usersRoute = require('./src/routes/users')
 app.use('/users', usersRoute)
 
-const notificationsRoute = require('./routes/notifications')
+const notificationsRoute = require('./src/routes/notifications')
 app.use('/notifications', notificationsRoute)
 
 mongoose.connect(

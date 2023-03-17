@@ -6,7 +6,7 @@ require('dotenv/config')
 const User = require('../../models/User')
 const Notification = require('../../models/Notification')
 const DataConstants = require('../../constants/data')
-const NOTIFICATIONS = require('../../constants/notifications').NOTIFICATIONS
+const NOTIFICATIONS = require('../../constants/notifications')
 
 
 // GET Routes
@@ -72,7 +72,8 @@ router.get('/search', async (req, res) => {
         res.json({
             data: users,
             canLoadMore: users.count == pageSize,
-            pagesCount: Math.ceil(count / pageSize)
+            pagesCount: Math.ceil(count / pageSize),
+            totalCount: count
         })
     } catch (error) {
         res.status(500).json({message: error.message})
@@ -120,6 +121,29 @@ router.patch('/:_id', async (req, res) => {
             throw Error('No users matched those filters.')
         }
 
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+router.patch('/settings/:userID', async (req, res) => {
+    const {userID} = req.params
+    const {path, value} = req.body
+
+    const fieldPath = 'settings.' + path
+
+    try {
+        const user = User.findByIdAndUpdate(userID,{
+            $set: {
+                [fieldPath]: value
+            }
+        })
+
+        if (user) {
+            res.json({message: 'Changes saved.'})
+        } else {
+            throw Error('No users matched those filters.')
+        }
     } catch (error) {
         res.status(500).json({message: error.message})
     }
