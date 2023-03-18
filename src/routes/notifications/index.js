@@ -1,21 +1,24 @@
 const express = require('express')
 const router = express.Router()
 const Notification = require('../../models/Notification')
-const DataConstants = require('../../constants/data')
+const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
 
 // GET Routes
 
-// get a user's notifications
+// Get a user's notifications
 /*
-    required fields: page, pagesize
+    - required query fields:
+        - page
+    - optional query fields:
+        - pagesize
 */
 router.get('/user/:userID', async (req, res) => {
     const {userID} = req.params
     const {
         page,
-        pagesize = DataConstants.PAGE_SIZES.notifications
+        pagesize = PAGE_SIZES.notifications
     } = req.query
-    const pageSize = Math.min(pagesize, DataConstants.MAX_PAGE_SIZE)
+    const pageSize = Math.min(pagesize, MAX_PAGE_SIZE)
     const filter = {user: userID}
 
     try {
@@ -27,7 +30,45 @@ router.get('/user/:userID', async (req, res) => {
             .lean()
         
         res.json({
-            data: notifications,
+            notifications,
+            canLoadMore: notifications.count == pageSize,
+            pagesCount: Math.ceil(count / pageSize),
+            totalCount: count
+        })
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+// Get notifications for a channel
+/*
+    - required query fields:
+        - page
+    - optional query fields:
+        - pagesize
+*/
+router.get('/user/:userID/channel/:channelID', async (req, res) => {
+    const {userID, channelID} = req.params
+    const {
+        page,
+        pagesize = PAGE_SIZES.channelNotifications
+    } = req.query
+    const pageSize = Math.min(pagesize, MAX_PAGE_SIZE)
+    const filter = {
+        user: userID,
+        channelID,
+    }
+
+    try {
+        const count = await Notification.countDocuments(filter)
+        const notifications = await Notification.find(filter)
+            .sort({createdAt: 1})
+            .skip((page - 1)*pageSize)
+            .limit(pageSize)
+            .lean()
+        
+        res.json({
+            notifications,
             canLoadMore: notifications.count == pageSize,
             pagesCount: Math.ceil(count / pageSize),
             totalCount: count
@@ -39,6 +80,7 @@ router.get('/user/:userID', async (req, res) => {
 
 // POST Routes
 
+// unused
 router.post('/', async (req, res) => {
     const notification = new Notification(req.body)
 
@@ -52,6 +94,7 @@ router.post('/', async (req, res) => {
 
 // PATCH Routes
 
+// Mark notifications as read
 router.patch('/markasread', async (req, res) => {
     const {notificationIDs} = req.body
     const filter = {
@@ -74,6 +117,7 @@ router.patch('/markasread', async (req, res) => {
 
 // DELETE Routes
 
+// Delete a notification
 router.delete('/', async (req, res) => {
     const {notificationID, userID} = req.query
     const filter = {

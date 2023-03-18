@@ -5,9 +5,8 @@ require('dotenv/config')
 
 const User = require('../../models/User')
 const Notification = require('../../models/Notification')
-const DataConstants = require('../../constants/data')
-const NOTIFICATIONS = require('../../constants/notifications')
-
+const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
+const {APP_NOTIFICATIONS} = require('../../utis/notifications/constants')
 
 // GET Routes
 
@@ -44,33 +43,36 @@ router.get('/_id/:_id', async (req, res) => {
 
 // search for a user
 /*
-    supported fields: displayName
-    required fields: page, pagesize
+    - required query fields:
+        - page
+        - displayName
+    - optional query fields:
+        - pagesize
 */
 router.get('/search', async (req, res) => {
     const {
-        pagesize = DataConstants.PAGE_SIZES.userSearch,
+        pagesize = PAGE_SIZES.userSearch,
         page,
         displayName
     } = req.query
-    const pageSize = Math.min(DataConstants.MAX_PAGE_SIZE, pagesize)
+    const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
 
-    const query = {
+    const filter = {
         $text: {
             $search : displayName
         }
     }
 
     try {
-        const count = await User.countDocuments(query)
-        const users = await User.find(query)
+        const count = await User.countDocuments(filter)
+        const users = await User.find(filter)
             .skip((page - 1)*pageSize)
             .limit(pageSize)
             .select('displayName photoURL')
             .lean()
 
         res.json({
-            data: users,
+            users,
             canLoadMore: users.count == pageSize,
             pagesCount: Math.ceil(count / pageSize),
             totalCount: count
@@ -92,7 +94,7 @@ router.post('/', async (req, res) => {
 
         try {
             const notification = Notification({
-                ...NOTIFICATIONS.welcomeToSite,
+                ...APP_NOTIFICATIONS.welcomeToSite,
                 user: user._id
             })
             await notification.save()
@@ -138,7 +140,7 @@ router.patch('/settings/:userID', async (req, res) => {
                 [fieldPath]: value,
             }
         })
-        
+
         if (user) {
             res.json({message: 'Changes saved.'})
         } else {

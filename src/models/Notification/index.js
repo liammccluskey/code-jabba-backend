@@ -2,17 +2,8 @@ const mongoose = require('mongoose')
 
 const NotificationSchema = mongoose.Schema({
     // required
-    channel: {
-        type: {
-            id: {
-                type: String,
-                required: true
-            },
-            title: {
-                type: String,
-                required: true
-            }
-        },
+    channelID: {
+        type: String,
         required: true,
     },
     message: {
@@ -26,11 +17,6 @@ const NotificationSchema = mongoose.Schema({
     },
 
     // optional
-    photoURL: {
-        type: String,
-        required: false,
-        default: null
-    },
 
     // default
     isRead: {
