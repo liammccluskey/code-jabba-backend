@@ -24,7 +24,7 @@ router.get('/user/:userID', async (req, res) => {
     try {
         const count = await Notification.countDocuments(filter)
         const notifications = await Notification.find(filter)
-            .sort({createdAt: 1})
+            .sort({createdAt: -1})
             .skip((page - 1)*pageSize)
             .limit(pageSize)
             .lean()
@@ -62,7 +62,7 @@ router.get('/user/:userID/channel/:channelID', async (req, res) => {
     try {
         const count = await Notification.countDocuments(filter)
         const notifications = await Notification.find(filter)
-            .sort({createdAt: 1})
+            .sort({createdAt: -1})
             .skip((page - 1)*pageSize)
             .limit(pageSize)
             .lean()

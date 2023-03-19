@@ -88,6 +88,11 @@ router.get('/search', async (req, res) => {
 router.post('/', async (req, res) => {
     const user = new User(req.body)
 
+    console.log('hit user route')
+    console.log(JSON.stringify(req.body, null, 4)) 
+    console.log(JSON.stringify(APP_NOTIFICATIONS, null, 4))
+    console.log(PAGE_SIZES)
+
     try {
         await user.save()
         res.json({message: `Welcome to ${process.env.SITE_NAME}`})

@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
-const DataConstants = require('../../constants/data')
+const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
 
 // GET Routes
 
