@@ -73,7 +73,7 @@ router.get('/search', async (req, res) => {
 
         res.json({
             users,
-            canLoadMore: users.count == pageSize,
+            canLoadMore: users.length == pageSize,
             pagesCount: Math.ceil(count / pageSize),
             totalCount: count
         })
