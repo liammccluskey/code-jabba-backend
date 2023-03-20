@@ -1,12 +1,12 @@
 require('dotenv/config')
 
-const isAdmin = requestBody => {
-    const {ADMIN_KEY} = requestBody
+const isAdmin = req => {
+    const {ADMIN_KEY} = req.headers
     return ADMIN_KEY === process.env.ADMIN_KEY
 }
 
-const isSuperAdmin = requestBody => {
-    const {SUPER_ADMIN_KEY} = requestBody
+const isSuperAdmin = req => {
+    const {SUPER_ADMIN_KEY} = req.headers
     return SUPER_ADMIN_KEY === process.env.SUPER_ADMIN_KEY
 }
 
