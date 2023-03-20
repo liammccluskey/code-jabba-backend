@@ -5,7 +5,7 @@ require('dotenv/config')
 
 const User = require('../../models/User')
 const Notification = require('../../models/Notification')
-const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
+const {MAX_PAGE_SIZE, PAGE_SIZES, ENV} = require('../../constants')
 const {APP_NOTIFICATIONS} = require('./notifications')
 
 // GET Routes
@@ -86,7 +86,15 @@ router.get('/search', async (req, res) => {
 
 // create a new user
 router.post('/', async (req, res) => {
-    const user = new User(req.body)
+    const user = ENV === 'dev' ?
+        new User({
+            ...req.body,
+            isAdmin: true,
+            isSuperAdmin: true,
+            adminKey: process.env.ADMIN_KEY,
+            superAdminKey: process.env.SUPER_ADMIN_KEY
+        })
+        : new User(req.body)
 
     try {
         await user.save()

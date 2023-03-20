@@ -6,7 +6,11 @@ const PAGE_SIZES = {
     userSearch: 10,
 }
 
+// 'dev' | 'prod'
+const ENV = 'dev'
+
 module.exports = {
     MAX_PAGE_SIZE,
-    PAGE_SIZES
+    PAGE_SIZES,
+    ENV
 }
