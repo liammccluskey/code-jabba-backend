@@ -1,0 +1,10 @@
+# 1 Create gmail
+
+# 2 Create Firebase with email
+    - copy config into frontend/.env
+
+# 3 Create MongoDB with email (monogo_username, mongo_password)
+    - create mongo user
+
+# 3 Create Heroku with email
+    - 
