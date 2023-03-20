@@ -24,5 +24,7 @@ export const postAppNotification = async (partialNotification, userID, user=null
                 await notification.save()
             }
         }
+    } catch (error) {
+        console.log(error)
     }
 }

@@ -1,10 +1,10 @@
 const {getUserFirstName} = require('../../models/User/utils')
-const {CHANNELS_IDS} = require('../../utis/notifications/constants')
+const {NOTIFICATION_CHANNEL_IDS} = require('../../utis/notifications/constants')
 
 const APP_NOTIFICATIONS = {
     // notificationID : { channelID, message }
     welcomeToSite: {
-        channelID: CHANNELS_IDS.main,
+        channelID: NOTIFICATION_CHANNEL_IDS.main,
         message: `Welcome to ${process.env.SITE_NAME}`,
     }
 }
@@ -12,7 +12,7 @@ const APP_NOTIFICATIONS = {
 const EMAIL_NOTIFICATIONS = {
     // notificationID : { channelID, title, message }
     welcomeToSite: user => ({
-        channelID: CHANNELS_IDS.main,
+        channelID: NOTIFICATION_CHANNEL_IDS.main,
         title: `Welcome to ${process.env.SITE_NAME}`,
         message: [
             `Hi ${getUserFirstName(user)}`,

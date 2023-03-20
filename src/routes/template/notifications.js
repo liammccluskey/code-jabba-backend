@@ -1,5 +1,5 @@
 const {getUserFirstName} = require('../../models/User/utils')
-const {CHANNELS_IDS} = require('../../utis/notifications/constants')
+const {NOTIFICATION_CHANNEL_IDS} = require('../../utis/notifications/constants')
 
 const APP_NOTIFICATIONS = {
     notificationID: {

@@ -4,6 +4,8 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 require('dotenv/config')
 
+const {isAdmin} = require('./src/routes/admin/utils')
+
 // Middleware
 
 app.use(cors())
@@ -14,7 +16,20 @@ app.use((req, res, next) => {
 
     if (apiKey !== process.env.HEROKU_API_KEY) {
         res.status(500).send({message: 'Invalid api key.'})
-        return
+    } else {
+        next()
+    }
+})
+
+app.use((req, res, next) => {
+    const {originalUrl} = req
+
+    if (originalUrl.split('/')[1] === 'admin') {
+        if (isAdmin(req)) {
+            next()
+        } else {
+            res.status(500).json({message: 'This operation requires admin privileges to complete.'})
+        }
     } else {
         next()
     }
@@ -28,6 +43,9 @@ app.use('/users', usersRoute)
 const notificationsRoute = require('./src/routes/notifications')
 app.use('/notifications', notificationsRoute)
 
+const adminUsersRoute = require('./src/routes/admin/users')
+app.use('/admin/users/', adminUsersRoute)
+
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,
     { 
@@ -36,4 +54,4 @@ mongoose.connect(
     },
 )
 
-const server = app.listen(process.env.PORT || 4005)
+const server = app.listen(process.env.PORT || 4006)
