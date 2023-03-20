@@ -37,7 +37,7 @@ router.patch('/makeadmin', async (req, res) => {
 
     try {
         const user = await User.findOneAndUpdate(filter, {
-            hasAdminPrivileges: true,
+            isAdmin: true,
             adminKey: process.env.ADMIN_KEY
         })
 
@@ -61,8 +61,10 @@ router.patch('/removeadmin', async (req, res) => {
 
     try {
         const user = await User.findOneAndUpdate(filter, {
-            hasAdminPrivileges: false,
-            adminKey: null
+            isAdmin: false,
+            adminKey: undefined,
+            isSuperAdmin: false,
+            superAdminKey: undefined
         })
 
         if (user) {
@@ -86,8 +88,10 @@ router.patch('/makesuperadmin', async (req, res) => {
 
     try {
         const user = await User.findOneAndUpdate(filter, {
-            hasSuperAdminPrivileges: true,
-            superAdminKey: process.env.SUPER_ADMIN_KEY
+            isAdmin: true,
+            adminKey: process.env.ADMIN_KEY,
+            isSuperAdmin: true,
+            superAdminKey: process.env.SUPER_ADMIN_KEY,
         })
 
         if (user) {
