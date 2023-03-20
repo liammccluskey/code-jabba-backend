@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 
 const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
+const {APP_NOTIFICATIONS} = require('./notifications')
 
 // GET Routes
 

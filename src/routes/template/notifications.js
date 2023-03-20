@@ -1,4 +1,5 @@
 const {getUserFirstName} = require('../../models/User/utils')
+const {CHANNELS_IDS} = require('../../utis/notifications/constants')
 
 const APP_NOTIFICATIONS = {
     notificationID: {
@@ -16,4 +17,9 @@ const EMAIL_NOTIFICATIONS = {
             '',
         ].join('\n')
     })
+}
+
+module.exports = {
+    APP_NOTIFICATIONS,
+    EMAIL_NOTIFICATIONS
 }
