@@ -27,6 +27,22 @@ const UserSchema = mongoose.Schema({
     },
 
     // default
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
+    isSuperAdmin: {
+        type: Boolean,
+        default: false
+    },
+    adminKey: {
+        type: String,
+        default: null
+    },
+    superAdminKey: {
+        type: String,
+        default: null
+    },
     settings: {
         theme: {
             themeColor: {
