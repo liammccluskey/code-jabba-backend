@@ -12,8 +12,8 @@ const {hasSuperAdminPrivileges} = require('../utils')
 router.get('/', async (req, res) => {
     const filter = {
         $or: [
-            {hasAdminPrivileges: true},
-            {hasSuperAdminPrivileges: true}
+            {isAdmin: true},
+            {isSuperAdmin: true}
         ]
     }
 
