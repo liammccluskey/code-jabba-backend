@@ -28,11 +28,11 @@ const UserSchema = mongoose.Schema({
     },
 
     // default
-    hasAdminPrivileges: {
+    isAdmin: {
         type: Boolean,
         default: false
     },
-    hasSuperAdminPrivileges: {
+    isSuperAdmin: {
         type: Boolean,
         default: false
     },
