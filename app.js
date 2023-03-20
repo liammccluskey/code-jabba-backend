@@ -4,7 +4,7 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 require('dotenv/config')
 
-const {isAdmin} = require('./src/routes/admin/utils')
+const {hasAdminPrivileges} = require('./src/routes/admin/utils')
 
 // Middleware
 
@@ -12,9 +12,9 @@ app.use(cors())
 app.use(express.json())
 
 app.use((req, res, next) => {
-    const apiKey = req.headers['heroku-api-key']
+    const {heroku_api_key} = req.headers
 
-    if (apiKey !== process.env.HEROKU_API_KEY) {
+    if (heroku_api_key !== process.env.HEROKU_API_KEY) {
         res.status(500).send({message: 'Invalid api key.'})
     } else {
         next()
@@ -25,7 +25,7 @@ app.use((req, res, next) => {
     const {originalUrl} = req
 
     if (originalUrl.split('/')[1] === 'admin') {
-        if (isAdmin(req)) {
+        if (hasAdminPrivileges(req)) {
             next()
         } else {
             res.status(500).json({message: 'This operation requires admin privileges to complete.'})
@@ -54,4 +54,4 @@ mongoose.connect(
     },
 )
 
-const server = app.listen(process.env.PORT || 4007)
+const server = app.listen(process.env.PORT || 4008)

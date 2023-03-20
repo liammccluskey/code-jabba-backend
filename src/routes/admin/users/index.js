@@ -4,7 +4,7 @@ require('dotenv/config')
 
 const User = require('../../../models/User')
 const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../../constants')
-const {isSuperAdmin} = require('../utils')
+const {hasSuperAdminPrivileges} = require('../utils')
 
 // GET Routes
 
@@ -12,16 +12,16 @@ const {isSuperAdmin} = require('../utils')
 router.get('/', async (req, res) => {
     const filter = {
         $or: [
-            {isAdmin: true},
-            {isSuperAdmin: true}
+            {hasAdminPrivileges: true},
+            {hasSuperAdminPrivileges: true}
         ]
     }
 
     try {
         const users = await User.find(filter)
             .lean()
-            .select('displayName photoURL isAdmin isSuperAdmin adminKey superAdminKey')
-            
+            .select('displayName photoURL hasAdminPrivileges hasSuperAdminPrivileges adminKey superAdminKey')
+
         res.json(users)
     } catch (error) {
         res.status(500).json({message: error.message})
@@ -37,7 +37,7 @@ router.patch('/makeadmin', async (req, res) => {
 
     try {
         const user = await User.findOneAndUpdate(filter, {
-            isAdmin: true,
+            hasAdminPrivileges: true,
             adminKey: process.env.ADMIN_KEY
         })
 
@@ -53,7 +53,7 @@ router.patch('/makeadmin', async (req, res) => {
 
 // PATCH make user admin
 router.patch('/removeadmin', async (req, res) => {
-    if (!isSuperAdmin(req)) {
+    if (!hasSuperAdminPrivileges(req)) {
         res.status(500).json({message: 'This operation requires super admin privileges to complete.'})
     }
     const {userID} = req.body
@@ -61,7 +61,7 @@ router.patch('/removeadmin', async (req, res) => {
 
     try {
         const user = await User.findOneAndUpdate(filter, {
-            isAdmin: false,
+            hasAdminPrivileges: false,
             adminKey: null
         })
 
@@ -77,7 +77,7 @@ router.patch('/removeadmin', async (req, res) => {
 
 // PATCH make user super admin
 router.patch('/makesuperadmin', async (req, res) => {
-    if (!isSuperAdmin(req)) {
+    if (!hasSuperAdminPrivileges(req)) {
         res.status(500).json({message: 'This operation requires super admin privileges to complete.'})
     }
 
@@ -86,7 +86,7 @@ router.patch('/makesuperadmin', async (req, res) => {
 
     try {
         const user = await User.findOneAndUpdate(filter, {
-            isSuperAdmin: true,
+            hasSuperAdminPrivileges: true,
             superAdminKey: process.env.SUPER_ADMIN_KEY
         })
 
