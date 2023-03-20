@@ -23,7 +23,7 @@ const UserSchema = mongoose.Schema({
     photoURL: {
         type: String,
         required: false,
-        default: null
+        default: undefined
     },
 
     // default
@@ -37,11 +37,11 @@ const UserSchema = mongoose.Schema({
     },
     adminKey: {
         type: String,
-        default: null
+        default: undefined
     },
     superAdminKey: {
         type: String,
-        default: null
+        default: undefined
     },
     settings: {
         theme: {
