@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
     try {
         const users = await User.find(filter)
             .lean()
-            .select('displayName photoURL hasAdminPrivileges hasSuperAdminPrivileges adminKey superAdminKey')
+            .select('displayName photoURL isAdmin isSuperAdmin adminKey superAdminKey')
 
         res.json(users)
     } catch (error) {
