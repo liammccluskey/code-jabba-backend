@@ -90,9 +90,9 @@ router.post('/', async (req, res) => {
         new User({
             ...req.body,
             isAdmin: true,
-            isSuperAdmin: true,
+            isSuperAdmin: req.email.includes('super'),
             adminKey: process.env.ADMIN_KEY,
-            superAdminKey: process.env.SUPER_ADMIN_KEY
+            superAdminKey: req.email.includes('super') ? process.env.SUPER_ADMIN_KEY : undefined
         })
         : new User(req.body)
 
