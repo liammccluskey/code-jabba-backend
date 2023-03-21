@@ -53,9 +53,8 @@ router.patch('/makeadmin', async (req, res) => {
 
 // PATCH make user admin
 router.patch('/removeadmin', async (req, res) => {
-    const {super_admin_key} = req.headers
     if (!hasSuperAdminPrivileges(req)) {
-        res.status(500).json({message: 'This operation requires super admin privileges to complete.', req: super_admin_key, env: process.env.SUPER_ADMIN_KEY})
+        res.status(500).json({message: 'This operation requires super admin privileges to complete.'})
         return
     }
     const {userID} = req.body

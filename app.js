@@ -8,7 +8,9 @@ const {hasAdminPrivileges} = require('./src/routes/admin/utils')
 
 // Middleware
 
-app.use(cors())
+app.use(cors({
+    origin: 'http://localhost:3003'
+}))
 app.use(express.json())
 
 app.use((req, res, next) => {
@@ -54,4 +56,4 @@ mongoose.connect(
     },
 )
 
-const server = app.listen(process.env.PORT || 4009)
+const server = app.listen(process.env.PORT || 4010)
