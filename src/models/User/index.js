@@ -24,7 +24,6 @@ const UserSchema = mongoose.Schema({
     photoURL: {
         type: String,
         required: false,
-        default: undefined
     },
 
     // default
@@ -88,11 +87,11 @@ const UserSchema = mongoose.Schema({
 
 UserSchema.index(
     {
-        displayName: 'text'
+        displayName: 'text',
     },
     {
         weights: {
-            displayName: 1
+            displayName: 1,
         }
     }
 )

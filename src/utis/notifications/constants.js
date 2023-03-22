@@ -2,8 +2,8 @@ require('dotenv/config')
 
 const {getUserFirstName} = require('../../models/User/utils')
 
-const NOTIFICATION_CHANNEL_IDS = {
-    main: 'main',
+const CHANNEL_IDS = {
+    general: 'general',
     announcements: 'announcements',
     social: 'social',
 }
@@ -11,6 +11,6 @@ const NOTIFICATION_CHANNEL_IDS = {
 const NOTIFICATIONS_EMAIL = 'liammccluskey2@gmail.com'
 
 module.exports = {
-    NOTIFICATION_CHANNEL_IDS,
+    CHANNEL_IDS,
     NOTIFICATIONS_EMAIL
 }

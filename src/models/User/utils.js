@@ -1,6 +1,6 @@
-const getUserFirstName = user => {
-    const hasName = !!user.displayName
-    return hasName ? user.displayName.split(' ')[0] : ''
+const getUserFirstName = displayName => {
+    const hasName = !!displayName
+    return hasName ? displayName.split(' ')[0] : `${process.env.SITE_NAME} user`
 }
 
 module.exports = {

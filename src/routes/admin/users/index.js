@@ -28,12 +28,37 @@ router.get('/', async (req, res) => {
     }
 })
 
+// GET all non-admin users
+//  - required query fields
+//      - searchText 
+router.get('/searchnonadmin', async (req, res) => {
+    const {searchText} = req.query
+    const filter = {
+        $text: {
+            $search: searchText
+        },
+        isAdmin: false,
+        isSuperAdmin: false
+    }
+
+    try {
+        const users = await User.find(filter)
+            .limit(MAX_PAGE_SIZE)
+            .lean()
+            .select('displayName email photoURL')
+
+        res.json(users)
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
 // PATCH Routes
 
 // PATCH make user admin
 router.patch('/makeadmin', async (req, res) => {
-    const {email} = req.body
-    const filter = {email}
+    const {userID} = req.body
+    const filter = {_id: userID}
 
     try {
         const user = await User.findOneAndUpdate(filter, {

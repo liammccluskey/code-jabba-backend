@@ -6,7 +6,11 @@ require('dotenv/config')
 const User = require('../../models/User')
 const Notification = require('../../models/Notification')
 const {MAX_PAGE_SIZE, PAGE_SIZES, ENV} = require('../../constants')
-const {APP_NOTIFICATIONS} = require('./notifications')
+const {APP_NOTIFICATIONS, EMAIL_NOTIFICATIONS} = require('./notifications')
+const {
+    postAppNotification,
+    sendEmailNotification
+} = require('../../utis/notifications')
 
 // GET Routes
 
@@ -85,27 +89,30 @@ router.get('/search', async (req, res) => {
 // POST Routes
 
 // create a new user
+// Notification Triggers
+//    - general app notification
+//    - general email notification
 router.post('/', async (req, res) => {
     const user = ENV === 'dev' ?
         new User({
             ...req.body,
             isAdmin: true,
-            isSuperAdmin: req.email.includes('super'),
             adminKey: process.env.ADMIN_KEY,
-            superAdminKey: req.email.includes('super') ? process.env.SUPER_ADMIN_KEY : undefined
         })
         : new User(req.body)
 
     try {
         await user.save()
-        res.json({message: `Welcome to ${process.env.SITE_NAME}`})
+        res.json({message: `Welcome to ${process.env.SITE_NAME}.`})
 
         try {
-            const notification = Notification({
-                ...APP_NOTIFICATIONS.welcomeToSite,
-                user: user._id
-            })
-            await notification.save()
+            await postAppNotification(APP_NOTIFICATIONS.welcomeToSite, user._id)
+        } catch (error) {
+            console.log(error)
+        }
+
+        try {
+            await sendEmailNotification(EMAIL_NOTIFICATIONS.welcomeToSite, user.displayName, user.email)
         } catch (error) {
             console.log(error)
         }
@@ -120,10 +127,11 @@ router.post('/', async (req, res) => {
 // update a user
 router.patch('/:_id', async (req, res) => {
     const {_id} = req.params
+    const updatedFields = req.body
     
     try {
         const user = await User.findByIdAndUpdate(_id, {
-            $set: req.body
+            $set: updatedFields
         })
         if (user) {
             res.json({message: 'Changes saved.'})
