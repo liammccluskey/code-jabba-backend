@@ -1,8 +1,9 @@
 const express = require('express')
 const router = express.Router()
+const moment = require('moment')
 
 const BugReport = require('../../../models/BugReport')
-const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
+const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../../constants')
 
 // GET Routes
 
@@ -10,57 +11,104 @@ const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
 //  optional query fields
 //      - pagesize
 //      - title
-//  required query fields
-//      - page
 //      - resolved
 //      - highPriority
 //      - archived
+//  required query fields
+//      - page
+//      - sortby
 router.get('/search', async (req, res) => {
     const {
-        pagesize = PAGE_SIZES.bugReportsSearch,
+        pagesize = PAGE_SIZES.bugReports,
         page,
-        resolved,
-        highPriority,
-        archived
+        sortby,
+        resolved=undefined,
+        highPriority=undefined,
+        archived=undefined,
+        title
     } = req.query
 
-    const pageSize = Math.max(MAX_PAGE_SIZE, pagesize)
+    const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
     const filter = {
-        resolved,
-        highPriority,
-        archived
+        ...(resolved === undefined ? {} : {resolved}),
+        ...(highPriority ? {highPriority: true} : {}),
+        ...(archived ? {archived: true} : {}),
+        ...(!!title ? {title} : {})
     }
 
     try {
+        const count = await BugReport.countDocuments(filter)
         const bugReports = await BugReport.find(filter)
+            .populate('reporter', 'displayName photoURL')
+            .sort(sortby)
             .skip((page - 1)*pageSize)
             .limit(pageSize)
             .lean()
 
-        res.json(bugReports)
+        console.log(JSON.stringify({
+            count,
+            pagesCount: Math.ceil(count / pageSize),
+            pageSize
+        }, null, 4))
+
+        res.json({
+            bugReports,
+            canLoadMore: bugReports.length == pageSize,
+            pagesCount: Math.ceil(count / pageSize),
+            totalCount: count
+        })
     } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+router.get('/:bugReportID', async (req, res) => {
+    const {bugReportID} = req.params
+
+    try {
+        const bugReport = await BugReport.findById(bugReportID)
+            .populate('reporter', 'displayName photoURL')
+            .lean()
+
+        if (bugReport) {
+            res.json(bugReport)
+        } else {
+            throw Error('No bug reports matched those filters.')
+        }
+    } catch (error) {
+        console.log(error)
         res.status(500).json({message: error.message})
     }
 })
 
 // PATCH Routes
 
-router.patch('/:bugReportID', async (req, res) => {
-    const bugReportID = req.params
-    const updatedFields = req.body
+router.patch('/', async (req, res) => {
+    const {bugReportIDs, updatedFields} = req.body
 
-    const filter = {_id: bugReportID}
+    if (updatedFields.resolved) {
+        updatedFields['resolvedAt'] = moment().toISOString()
+    }
+    if (updatedFields.archived) {
+        updatedFields['archivedAt'] = moment().toISOString()
+    }
+
+    const filter = {
+        _id: {
+            $in: bugReportIDs
+        }
+    }
 
     try {
-        const updatedBugReport = await BugReport.updateOne(filter, {
+        await BugReport.updateMany(filter, {
             $set: updatedFields
         })
 
-        if (updatedBugReport) {
-            res.json({message: 'Successfully updated bug report.'})
-        } else {
-            throw Error('No bug reports matched those filters.')
-        }
+        res.json({
+            message: bugReportIDs.length > 1 ? 
+                'Successfully updated bug reports.'
+                : 'Successfully updated bug report.'
+        })
     } catch (error) {
         res.status(500).json({message: error.message})
     }
@@ -68,17 +116,23 @@ router.patch('/:bugReportID', async (req, res) => {
 
 // DELETE Routes
 
-router.delete('/:bugReportID', async (req, res) => {
-    const {bugReportID} = req.params
+router.delete('/', async (req, res) => {
+    let {bugReportIDs} = req.query
+    bugReportIDs = bugReportIDs.split('-')
+
+    const filter = {
+        _id: {
+            $in: bugReportIDs
+        }
+    }
 
     try {
-        const deletedBugReport = await BugReport.findByIdAndDelete(bugReportID)
+        await BugReport.deleteMany(filter)
 
-        if (deletedBugReport) {
-            res.json({message: 'Successfully deleted bug report.'})
-        } else {
-            throw Error('No bug reports matched those filters.')
-        }
+        res.json({message: bugReportIDs.length > 1 ?
+            'Successfully deleted bug reports.'
+            : 'Successfully deleted bug report.'
+        })
     } catch (error) {
         res.status(500).json({message: error.message})
     }

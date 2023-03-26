@@ -48,11 +48,17 @@ app.use('/users', usersRoute)
 const notificationsRoute = require('./src/routes/notifications')
 app.use('/notifications', notificationsRoute)
 
+const bugReportsRoute = require('./src/routes/bugreports')
+app.use('/bugreports', bugReportsRoute)
+
 const adminUsersRoute = require('./src/routes/admin/users')
 app.use('/admin/users/', adminUsersRoute)
 
 const adminNotificationsRoute = require('./src/routes/admin/notifications')
 app.use('/admin/notifications', adminNotificationsRoute)
+
+const adminBugReportsRoute = require('./src/routes/admin/bugreports')
+app.use('/admin/bugreports', adminBugReportsRoute)
 
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,

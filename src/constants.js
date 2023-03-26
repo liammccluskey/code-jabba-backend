@@ -4,7 +4,7 @@ const PAGE_SIZES = {
     notifications: 10,
     channelNotifications: 20,
     userSearch: 10,
-    bugReportsSearch: 20
+    bugReports: 10,
 }
 
 // 'dev' | 'prod'

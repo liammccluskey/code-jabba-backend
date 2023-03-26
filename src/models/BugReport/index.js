@@ -10,6 +10,11 @@ const BugReportSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    reporter: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
 
     // optional
 
@@ -25,6 +30,14 @@ const BugReportSchema = mongoose.Schema({
     archived: {
         type: Boolean,
         default: false
+    },
+    resolvedAt: {
+        type: Date,
+        default: null
+    },
+    archivedAt: {
+        type: Date,
+        default: null
     }
 }, {timestamps: true})
 
