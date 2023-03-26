@@ -4,6 +4,7 @@ const moment = require('moment')
 
 const BugReport = require('../../../models/BugReport')
 const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../../constants')
+const {percentDelta} = require('./utils')
 
 // GET Routes
 
@@ -45,12 +46,6 @@ router.get('/search', async (req, res) => {
             .limit(pageSize)
             .lean()
 
-        console.log(JSON.stringify({
-            count,
-            pagesCount: Math.ceil(count / pageSize),
-            pageSize
-        }, null, 4))
-
         res.json({
             bugReports,
             canLoadMore: bugReports.length == pageSize,
@@ -59,6 +54,66 @@ router.get('/search', async (req, res) => {
         })
     } catch (error) {
         res.status(500).json({message: error.message})
+    }
+})
+
+//  required query fields
+//      - timeframe : 'week' | 'month' | 'year'
+router.get('/stats', async (req, res) => {
+    const {timeframe} = req.query
+
+    let timeframeStart, previousTimeframeStart
+    const timeframeEnd = moment().endOf('day').toDate()
+    if (timeframe === 'week') {
+        timeframeStart = moment().subtract(1, 'week').startOf('day').toDate()
+        previousTimeframeStart = moment().subtract(2,'weeks').startOf('day').toDate()
+    } else if (timeframe === 'month') {
+        timeframeStart = moment().subtract(1, 'month').startOf('day').toDate()
+        previousTimeframeStart = moment().subtract(2, 'months').startOf('day').toDate()
+    } else if (timeframe === 'year') {
+        timeframeStart = moment().subtract(1, 'year').startOf('day').toDate()
+        previousTimeframeStart = moment().subtract(2, 'years').startOf('day').toDate()
+    }
+
+    const reportsFilter = {createdAt: {$gte: timeframeStart, $lte: timeframeEnd}}
+    const resolvedFilter = {resolvedAt: {$gte: timeframeStart, $lte: timeframeEnd}}
+    const archivedFilter = {archivedAt: {$gte: timeframeStart, $lte: timeframeEnd}}
+    const previousReportsFilter = {createdAt: {$gte: previousTimeframeStart, $lte: timeframeStart}}
+    const previousResolvedFilter = {resolvedAt: {$gte: previousTimeframeStart, $lte: timeframeStart}}
+    const previousArchivedFilter = {archivedAt: {$gte: previousTimeframeStart, $lte: timeframeStart}}
+
+    try {
+        const reportsCount = await BugReport.countDocuments(reportsFilter)
+        const resolvedCount = await BugReport.countDocuments(resolvedFilter)
+        const archivedCount = await BugReport.countDocuments(archivedFilter)
+        const previousReportsCount = await BugReport.countDocuments(previousReportsFilter)
+        const previousResolvedCount = await BugReport.countDocuments(previousResolvedFilter)
+        const previousArchivedCount = await BugReport.countDocuments(previousArchivedFilter)
+
+        const reportsPercentDelta = percentDelta(previousReportsCount, reportsCount)
+        const resolvedPercentDelta = percentDelta(previousResolvedCount, resolvedCount)
+        const archivedPercentDelta = percentDelta(previousArchivedCount, archivedCount)
+
+        console.log(JSON.stringify({
+            reportsCount,
+            resolvedCount,
+            archivedCount,
+            reportsPercentDelta,
+            resolvedPercentDelta,
+            archivedPercentDelta
+        }, null, 4))
+
+        res.json({
+            reportsCount,
+            resolvedCount,
+            archivedCount,
+            reportsPercentDelta,
+            resolvedPercentDelta,
+            archivedPercentDelta
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: 'Could not fetch bug report statistics.'})
     }
 })
 
@@ -88,9 +143,13 @@ router.patch('/', async (req, res) => {
 
     if (updatedFields.resolved) {
         updatedFields['resolvedAt'] = moment().toISOString()
+    } else if (updatedFields.resolve == false) {
+        updatedFields['resolvedAt'] = null
     }
     if (updatedFields.archived) {
         updatedFields['archivedAt'] = moment().toISOString()
+    } else if (updatedFields.archived == false) {
+        updatedFields['archivedAt'] = null
     }
 
     const filter = {

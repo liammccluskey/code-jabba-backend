@@ -19,6 +19,10 @@ const BugReportSchema = mongoose.Schema({
     // optional
 
     // default
+    notes: {
+        type: String,
+        default: ''
+    },
     resolved: {
         type: Boolean,
         default: false
