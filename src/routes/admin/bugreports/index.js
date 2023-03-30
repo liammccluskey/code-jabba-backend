@@ -94,15 +94,6 @@ router.get('/stats', async (req, res) => {
         const resolvedPercentDelta = percentDelta(previousResolvedCount, resolvedCount)
         const archivedPercentDelta = percentDelta(previousArchivedCount, archivedCount)
 
-        console.log(JSON.stringify({
-            reportsCount,
-            resolvedCount,
-            archivedCount,
-            reportsPercentDelta,
-            resolvedPercentDelta,
-            archivedPercentDelta
-        }, null, 4))
-
         res.json({
             reportsCount,
             resolvedCount,

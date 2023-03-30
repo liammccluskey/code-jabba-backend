@@ -51,6 +51,9 @@ app.use('/notifications', notificationsRoute)
 const bugReportsRoute = require('./src/routes/bugreports')
 app.use('/bugreports', bugReportsRoute)
 
+const faqRoute = require('./src/routes/faq')
+app.use('/faq', faqRoute)
+
 const adminUsersRoute = require('./src/routes/admin/users')
 app.use('/admin/users/', adminUsersRoute)
 
@@ -59,6 +62,9 @@ app.use('/admin/notifications', adminNotificationsRoute)
 
 const adminBugReportsRoute = require('./src/routes/admin/bugreports')
 app.use('/admin/bugreports', adminBugReportsRoute)
+
+const adminFAQRoute = require('./src/routes/admin/faq')
+app.use('/admin/faq', adminFAQRoute)
 
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,
