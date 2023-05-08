@@ -103,7 +103,7 @@ router.post('/', async (req, res) => {
 
     try {
         await user.save()
-        res.json({message: `Welcome to ${process.env.SITE_NAME}.`})
+        res.json({message: `Welcome to ${process.env.SITE_NAME}.`, userID: user._id})
 
         try {
             await postAppNotification(APP_NOTIFICATIONS.welcomeToSite, user._id)
@@ -117,6 +117,18 @@ router.post('/', async (req, res) => {
             console.log(error)
         }
     } catch(error) {
+        console.log(error)
+        res.status(500).json({message: error.message})
+    }
+})
+
+router.post('/temporarypasswordemail', async (req, res) => {
+    const {password, displayName, email} = req.body
+
+    try {
+        await sendEmailNotification(EMAIL_NOTIFICATIONS.temporaryPassword(password), displayName, email)
+        res.json({message: 'Check your email for a temporary password.'})
+    } catch (error) {
         console.log(error)
         res.status(500).json({message: error.message})
     }
@@ -178,7 +190,11 @@ router.delete('/', async (req, res) => {
     }
 
     try {
-        const user = User.findOneAndDelete(filter)
+        const user = await User.findOneAndDelete(filter)
+
+        console.log(JSON.stringify(
+            {user, uid, userID}
+        , null, 4))
         if (user) {
             res.json({message: 'User deleted.'})
         } else {

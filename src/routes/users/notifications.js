@@ -13,7 +13,12 @@ const EMAIL_NOTIFICATIONS = {
         channelID: CHANNEL_IDS.general,
         subject: `${process.env.SITE_NAME} account created`,
         message: `Welcome to ${process.env.SITE_NAME}`,
-    }
+    },
+    temporaryPassword: password => ({
+        channelID: CHANNEL_IDS.general,
+        subject: `${process.env.SITE_NAME}: Temporary Password`,
+        message: `Your temporary password is:\n\n\t${password}`
+    }),
 }
 
 module.exports = {

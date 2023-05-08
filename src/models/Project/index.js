@@ -1,0 +1,127 @@
+const mongoose = require('mongoose')
+
+const {PROJECT_STATUSES} = require('./constants')
+
+const ProjectSchema = mongoose.Schema({
+    // required
+    creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    projectName: {
+        type: String,
+        required: true
+    },
+    projectType: {
+        type: String, // 's' | 'm' | 'l'
+        required: true, 
+    },
+    logoImageURLs: {
+        type: [String],
+        required: false
+    },
+    domainProviderURL: {
+        type: String,
+        required: true
+    },
+    domainProviderUsername: {
+        type: String,
+        required: true
+    },
+    domainProviderPassword: {
+        type: String,
+        required: true
+    },
+    heroTitle: {
+        type: String,
+        required: true
+    },
+    heroMessage: {
+        type: String,
+        required: true
+    },
+    selectedThemes: {
+        type: [Number],
+        required: true,
+    },
+    defaultTheme: {
+        type: Number,
+        required: true,
+    },
+    selectedTintColors: {
+        type: [Number],
+        required: true,
+    },
+    defaultTintColor: {
+        type: Number,
+        required: true,
+    },
+    pagesText: {
+        type: [String],
+        required: true
+    },
+    pagesImageURLs: {
+        type: [[String]],
+        required: true
+    },
+    hasSubscriptions: {
+        type: Boolean,
+        required: true,
+    },
+    subscriptionTiers: {
+        type: [{
+            name: String,
+            pricePerMonth: String,
+            features: String
+        }],
+        required: true,
+    },
+
+    // optional
+    customTintColor: {
+        type: String,
+        required: false,
+        default: null
+    },
+    accessCode: {
+        type: String,
+        required: false,
+        default: null
+    },
+    receivedPayment: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
+
+    // default
+    status: {
+        type: String,
+        required: false,
+        default: PROJECT_STATUSES.pendingApproval
+    },
+    archived: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
+    refundIssued: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
+}, {timestamps: true})
+
+ProjectSchema.index(
+    {
+        projectName: 'text'
+    },
+    {
+        weights: {
+            projectName: 1
+        }
+    }
+)
+
+module.exports = mongoose.model('Project', ProjectSchema)

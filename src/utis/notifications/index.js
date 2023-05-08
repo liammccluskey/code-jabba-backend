@@ -70,18 +70,18 @@ const postAppNotificationIfEnabled = async (
     return null
 }
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.NOTIFICATIONS_EMAIL,
-        pass: process.env.GMAIL_APP_PASSWORD
-    }
-})
-
 // returns : didSendNotififcation
 const sendEmailNotification = async (notification, toUserWithDisplayName, toUserWithEmail) => {
     const {subject, message} = notification
     const userFirstName = getUserFirstName(toUserWithDisplayName)
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.NOTIFICATIONS_EMAIL,
+            pass: process.env.GMAIL_APP_PASSWORD
+        }
+    })
 
     const mailOptions = {
         from: process.env.NOTIFICATIONS_EMAIL,
