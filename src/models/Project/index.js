@@ -111,6 +111,26 @@ const ProjectSchema = mongoose.Schema({
         required: false,
         default: false
     },
+    invoiceSent: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
+    editingLocked: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
+    revisionsLocked: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+    revisionNotes: {
+        type: String,
+        required: false,
+        default: '',
+    }
 }, {timestamps: true})
 
 ProjectSchema.index(

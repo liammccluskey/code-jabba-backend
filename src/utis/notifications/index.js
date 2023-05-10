@@ -3,7 +3,6 @@ require('dotenv/config')
 
 const User = require('../../models/User')
 const Notification = require('../../models/Notification')
-const {LOGO_URL} = require('../../constants')
 const {getUserFirstName} = require('../../models/User/utils')
 
 // notificationType = 'email' | 'app'

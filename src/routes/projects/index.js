@@ -124,6 +124,15 @@ router.patch('/:projectID', async (req, res) => {
     const updatedFields = req.body
     const filter = {_id: projectID}
 
+    delete updatedFields.status
+    delete updatedFields.accessCode
+    delete updatedFields.receivedPayment
+    delete updatedFields.archived
+    delete updatedFields.refundIssued
+    delete updatedFields.invoiceSent
+    delete updatedFields.editingLocked
+    delete updatedFields.revisionsLocked
+
     try {
         const project = await Project.findOneAndUpdate(filter, updatedFields)
             .lean()
