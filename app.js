@@ -66,19 +66,8 @@ app.use('/admin/bugreports', adminBugReportsRoute)
 const adminFAQRoute = require('./src/routes/admin/faq')
 app.use('/admin/faq', adminFAQRoute)
 
-// Blackbox Routes
-
-const accessCodesRoute = require('./src/routes/accesscodes')
-app.use('/accesscodes', accessCodesRoute)
-
-const projectsRoute = require('./src/routes/projects')
-app.use('/projects', projectsRoute)
-
-const adminAccessCodesRoute = require('./src/routes/admin/accesscodes')
-app.use('/admin/accesscodes', adminAccessCodesRoute)
-
-const adminProjectsRoute = require('./src/routes/admin/projects')
-app.use('/admin/projects', adminProjectsRoute)
+const membershipRoute = require('./src/routes/membership')
+app.use('/membership', membershipRoute)
 
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,
