@@ -2,7 +2,9 @@ const express = require('express')
 const router = express.Router()
 const moment = require('moment')
 require('dotenv/config')
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
+const {SUBSCRIPTION_TIERS} = require('../../models/User/constants')
 const User = require('../../models/User')
 const Notification = require('../../models/Notification')
 const {MAX_PAGE_SIZE, PAGE_SIZES, ENV} = require('../../constants')
@@ -19,11 +21,60 @@ router.get('/uid/:uid', async (req, res) => {
     const {uid} = req.params
 
     try {
-        const user = await User.findOne({uid})
+        // fetch user
+        let user = await User.findOne({uid})
             .lean()
+
+        // update subscription tier
+        const {email} = user
+        const customers = await stripe.customers.search({
+            query: `email:\'${email}\'`,
+        })
+        const [customer] = customers.data
+
+        console.log(JSON.stringify(
+            {subs: customer ? customer.subscriptions : 'no subs', subTier: user.subscriptionTier}
+        , null, 4))
+
+        if (customer && customer.subscriptions) {
+            const [subscription] = customer.subscriptions.data
+
+            if (subscription && subscription.status === 'active' && !user.subscriptionTier) {
+                user = await User.findByIdAndUpdate(user._id, {
+                    subscriptionTier: SUBSCRIPTION_TIERS.premium
+                })
+                console.log('active subscription')
+            } else {
+                user = await User.findByIdAndUpdate(user._id, {
+                    subscriptionTier: null
+                })
+                console.log('no subscription')
+            }
+        }
+
+        // if (customer) {
+        //     const subscriptions = await stripe.subscriptions.list()
+        //     const subscription = subscriptions.data.find(sub => sub.customer === customer.id)
+
+        //     if (subscription) {
+        //         if (subscription.status === 'active' && !user.subscriptionTier) {
+        //             user = await User.findByIdAndUpdate(user._id, {
+        //                 subscriptionTier: SUBSCRIPTION_TIERS.premium
+        //             })
+        //             console.log('active subscription')
+        //         } else if (subscription) {
+        //             user = await User.findByIdAndUpdate(user._id, {
+        //                 subscriptionTier: null
+        //             })
+        //             user = await User.findById(user._id)
+        //             console.log('no subscsription')
+        //         }
+        //     }
+        // }
             
         res.json(user)
     } catch (error) {
+        console.log(error)
         res.status(500).json({message: error.message})
     }
 })

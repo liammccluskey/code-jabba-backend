@@ -82,6 +82,16 @@ const UserSchema = mongoose.Schema({
                 default: false
             }
         }
+    },
+    stripeID: {
+        type: String,
+        required: false,
+        default: null
+    },
+    subscriptionTier: {
+        type: String,    // null | 'Premium'
+        required: false,
+        default: null
     }
 }, {timestamps: true})
 
