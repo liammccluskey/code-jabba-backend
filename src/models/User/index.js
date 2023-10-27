@@ -27,6 +27,16 @@ const UserSchema = mongoose.Schema({
     },
 
     // default
+    skills: {
+        type: [{title: String, level: Number, years: Number}],
+        required: false,
+        default: []
+    },
+    isRecruiter: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
     isAdmin: {
         type: Boolean,
         default: false
