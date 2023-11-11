@@ -134,5 +134,5 @@ module.exports = {
     postAppNotification,
     sendEmailNotification,
     postAppNotificationIfEnabled,
-    sendEmailNotificationIfEnabled
+    sendEmailNotificationIfEnabled,
 }

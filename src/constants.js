@@ -8,6 +8,10 @@ const PAGE_SIZES = {
     userSearch: 10,
     bugReports: 10,
     faqs: 10,
+    companySearch: 20,
+    jobSearch: 20,
+    candidateApplicationSearch: 20,
+    recruiterApplicationSearch: 50,
 }
 
 // 'dev' | 'prod'

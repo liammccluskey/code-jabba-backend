@@ -27,10 +27,35 @@ const UserSchema = mongoose.Schema({
     },
 
     // default
-    skills: {
-        type: [{title: String, level: Number, years: Number}],
+    languages: {
+        type: [{title: String, level: Number}],
         required: false,
         default: []
+    },
+    skills: {
+        type: [{title: String, level: Number}],
+        required: false,
+        default: []
+    },
+    linkedInURL: {
+        type: String,
+        required: false,
+        default: ''
+    },
+    githubURL: {
+        type: String,
+        required: false,
+        default: ''
+    },
+    portfolioURL: {
+        type: String,
+        required: false,
+        default: ''
+    },
+    resumeURL: {
+        type: String,
+        required: false,
+        default: null
     },
     isRecruiter: {
         type: Boolean,

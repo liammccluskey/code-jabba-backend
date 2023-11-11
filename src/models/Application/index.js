@@ -2,15 +2,26 @@ const mongoose = require('mongoose')
 
 const ApplicationSchema = mongoose.Schema({
     //required
-    applicant: {
+    candidate: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
     },
-    jobPost: {
+    job: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'JobPost',
+        ref: 'Job',
         required: true,
+    },
+    recruiter: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+
+    // optional
+    questions: {
+        type: [{id: String, answer: String}],
+        required: false,
     },
 
     //default
@@ -24,7 +35,24 @@ const ApplicationSchema = mongoose.Schema({
         required: false,
         default: false
     },
+    viewedAt: {
+        type: String,
+        required: false,
+        default: null,
+    },
+    rejectedAt: {
+        type: String,
+        required: false,
+        default: null,
+    },
+    acceptedAt: {
+        type: String,
+        required: false,
+        default: null,
+    },
 }, {timestamps: true})
+
+ApplicationSchema.index({job: 1, candidate: 1}, {unique: true})
 
 module.exports = mongoose.model('Application', ApplicationSchema)
 

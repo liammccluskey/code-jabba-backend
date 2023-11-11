@@ -69,6 +69,15 @@ app.use('/admin/faq', adminFAQRoute)
 const membershipRoute = require('./src/routes/membership')
 app.use('/membership', membershipRoute)
 
+const companiesRoute = require('./src/routes/companies')
+app.use('/companies', companiesRoute)
+
+const jobsRoute = require('./src/routes/jobs')
+app.use('/jobs', jobsRoute)
+
+const applicationsRoute = require('./src/routes/applications')
+app.use('/applications', applicationsRoute)
+
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,
     {

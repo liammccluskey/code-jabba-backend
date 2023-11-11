@@ -4,7 +4,7 @@ const moment = require('moment')
 
 const BugReport = require('../../../models/BugReport')
 const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../../constants')
-const {percentDelta} = require('./utils')
+const {percentDelta} = require('../../../utils/misc')
 
 // GET Routes
 
@@ -64,23 +64,16 @@ router.get('/stats', async (req, res) => {
 
     let timeframeStart, previousTimeframeStart
     const timeframeEnd = moment().endOf('day').toDate()
-    if (timeframe === 'week') {
-        timeframeStart = moment().subtract(1, 'week').startOf('day').toDate()
-        previousTimeframeStart = moment().subtract(2,'weeks').startOf('day').toDate()
-    } else if (timeframe === 'month') {
-        timeframeStart = moment().subtract(1, 'month').startOf('day').toDate()
-        previousTimeframeStart = moment().subtract(2, 'months').startOf('day').toDate()
-    } else if (timeframe === 'year') {
-        timeframeStart = moment().subtract(1, 'year').startOf('day').toDate()
-        previousTimeframeStart = moment().subtract(2, 'years').startOf('day').toDate()
-    }
 
-    const reportsFilter = {createdAt: {$gte: timeframeStart, $lte: timeframeEnd}}
-    const resolvedFilter = {resolvedAt: {$gte: timeframeStart, $lte: timeframeEnd}}
-    const archivedFilter = {archivedAt: {$gte: timeframeStart, $lte: timeframeEnd}}
-    const previousReportsFilter = {createdAt: {$gte: previousTimeframeStart, $lte: timeframeStart}}
-    const previousResolvedFilter = {resolvedAt: {$gte: previousTimeframeStart, $lte: timeframeStart}}
-    const previousArchivedFilter = {archivedAt: {$gte: previousTimeframeStart, $lte: timeframeStart}}
+    timeframeStart = moment().subtract(1, timeframe).startOf('day').toDate()
+    previousTimeframeStart = moment().subtract(2, timeframe + 's').startOf('day').toDate()
+
+    const [reportsFilter, resolvedFilter, archivedFilter] = ['createdAt', 'resolvedAt', 'archivedAt'].map( field => ({
+        [field]: {$gte: timeframeStart, $lte: timeframeEnd}
+    }))
+    const [previousReportsFilter, previousResolvedFilter, previousArchivedFilter] = ['createdAt', 'resolvedAt', 'archivedAt'].map( field => ({
+        [field]: {$gte: previousTimeframeStart, $lte: timeframeStart}
+    }))
 
     try {
         const reportsCount = await BugReport.countDocuments(reportsFilter)
