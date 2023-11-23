@@ -7,6 +7,7 @@ const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
 const {SUBSCRIPTION_TIERS} = require('../../models/User/constants')
 const User = require('../../models/User')
+const Reward = require('../../models/Reward')
 const Notification = require('../../models/Notification')
 const {MAX_PAGE_SIZE, PAGE_SIZES, ENV} = require('../../constants')
 const {APP_NOTIFICATIONS, EMAIL_NOTIFICATIONS} = require('./notifications')
@@ -14,6 +15,8 @@ const {
     postAppNotification,
     sendEmailNotification
 } = require('../../utils/notifications')
+const { transformUser, formatUser } = require('../../models/User/utils')
+const {v4 : uuid} = require('uuid')
 
 // GET Routes
 
@@ -49,7 +52,8 @@ router.get('/uid/:uid', async (req, res) => {
                 }
             }
         }
-            
+
+        user = formatUser(user)
         res.json(user)
     } catch (error) {
         console.log(error)
@@ -115,6 +119,21 @@ router.get('/search', async (req, res) => {
     }
 })
 
+router.get('/stats', async (req, res) => {
+    try {
+        const candidatesCount = await User.countDocuments({isRecruiter: false})
+        const recruitersCount = await User.countDocuments({isRecruiter: true})
+
+        res.json({
+            candidatesCount,
+            recruitersCount
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: error.message})
+    }
+})
+
 // POST Routes
 
 // create a new user
@@ -122,13 +141,16 @@ router.get('/search', async (req, res) => {
 //    - general app notification
 //    - general email notification
 router.post('/', async (req, res) => {
+    const {referralCode} = req.body
+
     const user = ENV === 'dev' ?
         new User({
-            ...req.body,
+            ...req.body.user,
             isAdmin: true,
             adminKey: process.env.ADMIN_KEY,
         })
-        : new User(req.body)
+        : new User(req.body.user)
+    user.referralCode = uuid()
 
     try {
         await user.save()
@@ -144,6 +166,25 @@ router.post('/', async (req, res) => {
             await sendEmailNotification(EMAIL_NOTIFICATIONS.welcomeToSite, user.displayName, user.email)
         } catch (error) {
             console.log(error)
+        }
+        
+        if (referralCode) {
+            try {
+                const [referrer] = await User.find({referralCode})
+                    .select('_id')
+                    .lean()
+
+                if (referrer) {
+                    const reward = new Reward({
+                        referrer: referrer._id,
+                        referree: user._id
+                    })
+
+                    await reward.save()
+                }
+            } catch (error) {
+                console.log(error)
+            }
         }
     } catch(error) {
         console.log(error)
@@ -172,7 +213,7 @@ router.patch('/:_id', async (req, res) => {
     
     try {
         const user = await User.findByIdAndUpdate(_id, {
-            $set: updatedFields
+            $set: transformUser(updatedFields)
         })
         if (user) {
             res.json({message: 'Changes saved.'})
@@ -181,7 +222,8 @@ router.patch('/:_id', async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({message: error.message})
+        console.log(error)
+        res.status(500).json({message: 'Either the LinkedIn URL or the phone number you entered is already exists.'})
     }
 })
 

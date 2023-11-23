@@ -120,10 +120,6 @@ router.get('/:jobID', async (req, res) => {
         const applications = await Application.find(applicationFilter)
             .lean()
 
-        console.log(JSON.stringify(
-            {applications, applicationFilter}
-        , null, 4))
-
         if (job) {
             job.applied = applications.length > 0
             res.json(job)

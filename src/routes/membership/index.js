@@ -14,13 +14,14 @@ router.patch('/cancel-subscription', async (req, res) => {
     try {
         const customer = await stripe.customers.retrieve(stripeID)
 
-        if (customer && customer.subscriptions) {
-            const [subscriptions] = customer.subscriptions.data
-            const [subscription] = subscriptions
+        if (customer) {
+            const subscriptions = await stripe.subscriptions.list()
+            const subscription = subscriptions.data.find(sub => sub.customer === customer.id)
 
             if (subscription) {
                 await stripe.subscriptions.del(subscription.id)
                 await stripe.customers.del(customer.id)
+
                 const user = await User.findByIdAndUpdate(userID, {
                     subscriptionTier: null
                 })
@@ -32,25 +33,6 @@ router.patch('/cancel-subscription', async (req, res) => {
         } else {
             throw Error('You do not have any active subscriptions.')
         }
-        // if (customer) {
-        //     const subscriptions = await stripe.subscriptions.list()
-        //     const subscription = subscriptions.data.find(sub => sub.customer === customer.id)
-
-        //     if (subscription) {
-        //         await stripe.subscriptions.del(subscription.id)
-        //         await stripe.customers.del(customer.id)
-
-        //         const user = await User.findByIdAndUpdate(userID, {
-        //             subscriptionTier: null
-        //         })
-
-        //         res.json({message: 'Successfully cancelled your subscription.'})
-        //     } else {
-        //         throw Error('You do not have any active subscriptions.')
-        //     }
-        // } else {
-        //     throw Error('You do not have any active subscriptions.')
-        // }
     } catch (error) {
         console.log(error)
         res.status(500).json({message: error.message})

@@ -12,6 +12,7 @@ const PAGE_SIZES = {
     jobSearch: 20,
     candidateApplicationSearch: 20,
     recruiterApplicationSearch: 50,
+    rewardsSearch: 20,
 }
 
 // 'dev' | 'prod'

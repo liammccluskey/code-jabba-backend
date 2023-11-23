@@ -30,16 +30,6 @@ const CompanySchema = mongoose.Schema({
     },
 
     // default
-    rating: {
-        type: Number,
-        required: false,
-        default: 0
-    },
-    reviewCount: {
-        type: Number,
-        required: false,
-        default: 0
-    },
     pendingRecruiters: {
         type: [
             {

@@ -78,6 +78,9 @@ app.use('/jobs', jobsRoute)
 const applicationsRoute = require('./src/routes/applications')
 app.use('/applications', applicationsRoute)
 
+const rewardsRoute = require('./src/routes/rewards')
+app.use('/rewards', rewardsRoute)
+
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,
     {

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const moment = require('moment')
 
 const UserSchema = mongoose.Schema({
     // required
@@ -15,6 +16,10 @@ const UserSchema = mongoose.Schema({
         unique: true,
         index: true
     },
+    referralCode: {
+        type: String,
+        required: true
+    },
 
     // optional
     displayName: {
@@ -27,20 +32,48 @@ const UserSchema = mongoose.Schema({
     },
 
     // default
+    phoneNumber: {
+        type: String,
+        required: false,
+        unique: true,
+        default: undefined,
+        sparse: true,
+    },
+    address: {
+        type: String,
+        required: false,
+        default: null
+    },
+    birthdayDay: {
+        type: String,
+        required: false,
+        default: '1'
+    },
+    birthdayMonth: {
+        type: String,
+        required: false,
+        default: '1'
+    },
+    birthdayYear: {
+        type: String,
+        required: false,
+        default: moment().year().toString()
+    },
     languages: {
-        type: [{title: String, level: Number}],
+        type: [String],
         required: false,
         default: []
     },
     skills: {
-        type: [{title: String, level: Number}],
+        type: [String],
         required: false,
         default: []
     },
     linkedInURL: {
         type: String,
         required: false,
-        default: ''
+        default: undefined,
+        unique: true,
     },
     githubURL: {
         type: String,
@@ -48,6 +81,11 @@ const UserSchema = mongoose.Schema({
         default: ''
     },
     portfolioURL: {
+        type: String,
+        required: false,
+        default: ''
+    },
+    leetcodeURL: {
         type: String,
         required: false,
         default: ''
@@ -61,6 +99,69 @@ const UserSchema = mongoose.Schema({
         type: Boolean,
         required: false,
         default: false,
+    },
+    educations: {
+        type: [{
+            school: String, 
+            degree: String, 
+            fieldOfStudy: String, 
+            startMonth: String, 
+            startYear: String, 
+            endMonth: String,
+            endYear: String,
+            isCurrent: Boolean,
+            id: String,
+        }],
+        required: false,
+        default: [],
+    },
+    workExperiences: {
+        type: [Object],
+        required: false,
+        default: [],
+    },
+    // workExperience Type: REASON : shows cast to [string] error
+    // [{
+    //     company: String, 
+    //     jobTitle: String, 
+    //     setting: String,
+    //     type: String, 
+    //     position: String,
+    //     languages: [String],
+    //     skills: [String],
+    //     description: String,
+    //     startMonth: String, 
+    //     startYear: String, 
+    //     endMonth: String,
+    //     endYear: String,
+    //     isCurrent: Boolean,
+    //     id: String
+    // }]  
+    projects: {
+        type: [{
+            title: String, 
+            url: String,
+            codeURL: String,
+            languages: [String],
+            skills: [String],
+            description: String, 
+            startMonth: String, 
+            startYear: String, 
+            endMonth: String,
+            endYear: String,
+            isCurrent: Boolean,
+            id: String,
+        }],
+        required: false,
+        default: [],
+    },
+    questions: {
+        type: [{
+            id: String,
+            answer: String,
+        }],
+        required: false,
+        default: []
     },
     isAdmin: {
         type: Boolean,
@@ -141,4 +242,4 @@ UserSchema.index(
     }
 )
 
-module.exports = mongoose.model('User', UserSchema)
+module.exports = mongoose.model('User', UserSchema) 

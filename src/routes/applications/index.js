@@ -8,14 +8,6 @@ const {percentDelta} = require('../../utils/misc')
 
 // GET Routes
 
-router.get('/', async (req, res) => {
-    try {
-
-    } catch (error) {
-        res.status(500).json({message: error.message})
-    }
-})
-
 /*
     - required query fields:
         - page
@@ -173,6 +165,35 @@ router.get('/stats', async (req, res) => {
     } catch (error) {
         console.log(error)
         res.status(500).json({message: 'Could not fetch application statistics.'})
+    }
+})
+
+router.get('/:applicationID', async (req, res) => {
+    const {applicationID} = req.params
+    const {userID} = req.query
+
+    try {
+        const application = await Application.findById(applicationID)
+            .populate({
+                path: 'job',
+                populate: {
+                    path: 'company'
+                }
+            })
+            .lean()
+
+        if (application) {
+            application.job.applied = true
+            if (application.candidate == userID) {
+                res.json(application)
+            } else {
+                res.status(500).json({message: 'You do not have access to this application.'})
+            }
+        } else {
+            res.status(500).json({message: 'No applications matched those filters'})
+        }
+    } catch (error) {
+        res.status(500).json({message: 'No applications matched those filters'})
     }
 })
 

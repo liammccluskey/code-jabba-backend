@@ -17,7 +17,7 @@ const JobSchema = mongoose.Schema({
         required: true
     },
     position: {
-        type: String, // frontend | backend | full-stack
+        type: String, // frontend | backend | full-stack | embedded | qa | test
         required: true,
     },
     type: {
