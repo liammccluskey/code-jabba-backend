@@ -3,8 +3,10 @@ const router = express.Router()
 require('dotenv/config')
 
 const User = require('../../../models/User')
+const Subscription = require('../../../models/Subscription')
 const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../../constants')
 const {hasSuperAdminPrivileges} = require('../utils')
+const { SUBSCRIPTION_TIERS } = require('../../../models/Subscription/constants')
 
 // GET Routes
 
@@ -49,6 +51,25 @@ router.get('/searchnonadmin', async (req, res) => {
 
         res.json(users)
     } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+router.get('/user-stats', async (req, res) => {
+    try {
+        const candidatesCount = await User.countDocuments({isRecruiter: false})
+        const recruitersCount = await User.countDocuments({isRecruiter: true})
+        const premiumCandidatesCount = await Subscription.countDocuments({status: 'active', tier: SUBSCRIPTION_TIERS.candidatePremium})
+        const premiumRecruitersCount = await Subscription.countDocuments({status: 'active', tier: SUBSCRIPTION_TIERS.recruiterPremium})
+
+        res.json({
+            candidatesCount,
+            recruitersCount,
+            premiumCandidatesCount,
+            premiumRecruitersCount
+        })
+    } catch (error) {
+        console.log(error)
         res.status(500).json({message: error.message})
     }
 })

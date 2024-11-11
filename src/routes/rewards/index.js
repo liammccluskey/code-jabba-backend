@@ -48,15 +48,7 @@ router.get('/stats', async (req, res) => {
     try {
         const referralsCount = await Reward.countDocuments({referrer: userID})
         const claimedReferralsCount = await Reward.countDocuments({referrer: userID, claimed: true})
-        const unclaimedReferralsCount = referralsCount - claimedReferralsCount
-
-        console.log(JSON.stringify(
-            {
-                referralsCount,
-                claimedReferralsCount,
-                unclaimedReferralsCount
-            }
-        , null, 4))
+        const unclaimedReferralsCount = await Reward.countDocuments({referrer: userID, claimed: false, active: true})
 
         res.json({
             referralsCount,

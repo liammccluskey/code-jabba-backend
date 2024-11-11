@@ -4,7 +4,9 @@ const moment = require('moment')
 
 const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
 const Application = require('../../models/Application')
+const Job = require('../../models/Job')
 const {percentDelta} = require('../../utils/misc')
+const {logEvent} = require('../events/utils')
 
 // GET Routes
 
@@ -75,14 +77,12 @@ router.get('/candidate-search', async (req, res) => {
 */
 router.get('/recruiter-search', async (req, res) => {
     const {
-        pagesize = PAGE_SIZES.recruiterApplicationSearch,
-        page,
         userID,
         jobID,
         sortBy,
         status=undefined,
     } = req.query
-    const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
+    pageSize = PAGE_SIZES.recruiterApplicationSearch
 
     const filter = {
         ...(status === undefined ? {} : {status}),
@@ -94,15 +94,13 @@ router.get('/recruiter-search', async (req, res) => {
         const count = await Application.countDocuments(filter)
         const applications = await Application.find(filter)
             .sort(sortBy)
-            .skip((page - 1)*pageSize)
-            .limit(pageSize)
             .select('status createdAt')
             .populate('candidate', 'displayName email')
             .lean()
 
         res.json({
             applications,
-            pagesCount: Math.ceil(count / pageSize),
+            pagesCount: Math.ceil(count / pageSize)
         })
     } catch (error) {
         console.log(error)
@@ -116,9 +114,9 @@ router.get('/recruiter-search', async (req, res) => {
 //      - isRecruiter
 // optional query fields
 //      - jobID
-router.get('/stats', async (req, res) => {
-    const {timeframe, userID, jobID} = req.query
-    const isRecruiter = Number(req.query.isRecruiter)
+router.get('/value-delta-stats', async (req, res) => {
+    const {timeframe, userID, userType, jobID} = req.query
+    const isRecruiterMode = userType === 'recruiter'
 
     let timeframeStart, previousTimeframeStart
     const timeframeEnd = moment().endOf('day').toDate()
@@ -128,12 +126,12 @@ router.get('/stats', async (req, res) => {
 
     const [submittedFilter, viewedFilter, rejectedFilter, acceptedFilter] = ['createdAt', 'viewedAt', 'rejectedAt', 'acceptedAt'].map( field => ({
         [field]: {$gte: timeframeStart, $lte: timeframeEnd},
-        ...(isRecruiter ? {recruiter: userID} : {candidate: userID}),
+        ...(isRecruiterMode ? {recruiter: userID} : {candidate: userID}),
         ...(jobID === undefined ? {} : {job: jobID})
     }))
     const [previousSubmittedFilter, previousViewedFilter, previousRejectedFilter, previousAcceptedFilter] = ['createdAt', 'viewedAt', 'rejectedAt', 'acceptedAt'].map( field => ({
         [field]: {$gte: previousTimeframeStart, $lte: timeframeStart},
-        ...(isRecruiter ? {recruiter: userID} : {candidate: userID}),
+        ...(isRecruiterMode ? {recruiter: userID} : {candidate: userID}),
         ...(jobID === undefined ? {} : {job: jobID})
     }))
 
@@ -168,6 +166,69 @@ router.get('/stats', async (req, res) => {
     }
 })
 
+router.get('/can-apply-to-job', async (req, res) => {
+    const {userID} = req.query
+
+    const filter = {
+        createdAt: {
+            $gte: moment().startOf('day').toDate()
+        }
+    }
+
+    try {
+        const applicationsCount = await Application.countDocuments(filter)
+
+        res.json({
+            canApply: applicationsCount >= 5
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: error.message})
+    }
+})
+
+router.get('/heatmap', async (req, res) => {
+    const {userType, userID} = req.query
+
+    try {
+        const startOfYear = moment().startOf('year')
+        const endOfYear = moment().endOf('year')
+
+        const applications = await Application.find({
+            ...(userType === 'recruiter' ?
+                {recruiter: userID}
+                : {candidate: userID} 
+            ),
+            createdAt: {
+                $gte: startOfYear.toDate(),
+                $lte: endOfYear.toDate()
+            }
+        })
+        .select('createdAt')
+        .lean()
+
+        const data = {
+            count: applications.length,
+            max: 0,
+            data: {}
+        }
+
+        applications.forEach(application => {
+            const dayOfYear = moment(application.createdAt).dayOfYear()
+
+            if (dayOfYear in data.data) {
+                data.data[dayOfYear]++
+            } else {
+                data.data[dayOfYear] = 1
+            }
+        })
+
+        res.json(data)
+    } catch (error ) {
+        res.status(500).json({message: 'An error occured searching for applications heatmap data'})
+    }
+})
+
 router.get('/:applicationID', async (req, res) => {
     const {applicationID} = req.params
     const {userID} = req.query
@@ -177,14 +238,16 @@ router.get('/:applicationID', async (req, res) => {
             .populate({
                 path: 'job',
                 populate: {
-                    path: 'company'
+                    path: 'company',
+                    path: 'recruiter'
                 }
             })
+            .populate('candidate')
             .lean()
 
         if (application) {
             application.job.applied = true
-            if (application.candidate == userID) {
+            if (application.candidate._id == userID) {
                 res.json(application)
             } else {
                 res.status(500).json({message: 'You do not have access to this application.'})

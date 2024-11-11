@@ -66,6 +66,9 @@ app.use('/admin/bugreports', adminBugReportsRoute)
 const adminFAQRoute = require('./src/routes/admin/faq')
 app.use('/admin/faq', adminFAQRoute)
 
+const adminStatsRoute = require('./src/routes/admin/stats')
+app.use('/admin/stats', adminStatsRoute)
+
 const membershipRoute = require('./src/routes/membership')
 app.use('/membership', membershipRoute)
 
@@ -81,6 +84,15 @@ app.use('/applications', applicationsRoute)
 const rewardsRoute = require('./src/routes/rewards')
 app.use('/rewards', rewardsRoute)
 
+const contactUsRoute = require('./src/routes/contactus')
+app.use('/contact-us', contactUsRoute)
+
+const statsRoute = require('./src/routes/stats')
+app.use('/stats', statsRoute)
+
+const eventsRoute = require('./src/routes/events')
+app.use('/events', eventsRoute)
+
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,
     {
@@ -89,4 +101,4 @@ mongoose.connect(
     },
 )
 
-const server = app.listen(process.env.PORT || 3002)
+const server = app.listen(process.env.PORT || 3001)

@@ -1,14 +1,12 @@
 const express = require('express')
 const router = express.Router()
-const moment = require('moment')
 require('dotenv/config')
 const {STRIPE_SECRET_KEY} = require('../../constants')
 const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
-const {SUBSCRIPTION_TIERS} = require('../../models/User/constants')
 const User = require('../../models/User')
 const Reward = require('../../models/Reward')
-const Notification = require('../../models/Notification')
+const Subscription = require('../../models/Subscription')
 const {MAX_PAGE_SIZE, PAGE_SIZES, ENV} = require('../../constants')
 const {APP_NOTIFICATIONS, EMAIL_NOTIFICATIONS} = require('./notifications')
 const {
@@ -17,6 +15,8 @@ const {
 } = require('../../utils/notifications')
 const { transformUser, formatUser } = require('../../models/User/utils')
 const {v4 : uuid} = require('uuid')
+const { logEvent } = require('../events/utils')
+const { EVENTS } = require('../events/constants')
 
 // GET Routes
 
@@ -26,35 +26,25 @@ router.get('/uid/:uid', async (req, res) => {
 
     try {
         // fetch user
-        let user = await User.findOne({uid})
+        const user = await User.findOne({uid})
             .lean()
 
-        // update subscription tier
-        const {email} = user
-        const customers = await stripe.customers.search({
-            query: `email:\'${email}\'`,
-        })
-        const [customer] = customers.data
+        // find and update subscription
+        let [subscription] = await Subscription.find({user: user._id, status: 'active'})
 
-        if (customer) {
-            const subscriptions = await stripe.subscriptions.list()
-            const subscription = subscriptions.data.find(sub => sub.customer === customer.id)
+        if (subscription) {
+            const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionID)
 
-            if (subscription) {
-                if (subscription.status === 'active' && !user.subscriptionTier) {
-                    user = await User.findByIdAndUpdate(user._id, {
-                        subscriptionTier: SUBSCRIPTION_TIERS.premium
-                    })
-                } else if (subscription) {
-                    user = await User.findByIdAndUpdate(user._id, {
-                        subscriptionTier: null
-                    })
-                }
+            if (stripeSubscription && stripeSubscription.status !== 'active') {
+                subscription = await Subscription.findByIdAndUpdate(subscription._id, {
+                    status: 'deleted',
+                })
             }
         }
+        
+        user.subscription = subscription
 
-        user = formatUser(user)
-        res.json(user)
+        res.json(formatUser(user))
     } catch (error) {
         console.log(error)
         res.status(500).json({message: error.message})
@@ -119,21 +109,6 @@ router.get('/search', async (req, res) => {
     }
 })
 
-router.get('/stats', async (req, res) => {
-    try {
-        const candidatesCount = await User.countDocuments({isRecruiter: false})
-        const recruitersCount = await User.countDocuments({isRecruiter: true})
-
-        res.json({
-            candidatesCount,
-            recruitersCount
-        })
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({message: error.message})
-    }
-})
-
 // POST Routes
 
 // create a new user
@@ -141,7 +116,7 @@ router.get('/stats', async (req, res) => {
 //    - general app notification
 //    - general email notification
 router.post('/', async (req, res) => {
-    const {referralCode} = req.body
+    const {referralCode, isRecruiter} = req.body
 
     const user = ENV === 'dev' ?
         new User({
@@ -151,6 +126,7 @@ router.post('/', async (req, res) => {
         })
         : new User(req.body.user)
     user.referralCode = uuid()
+    user.isRecruiter = isRecruiter
 
     try {
         await user.save()
@@ -189,6 +165,24 @@ router.post('/', async (req, res) => {
     } catch(error) {
         console.log(error)
         res.status(500).json({message: error.message})
+    }
+
+    if (isRecruiter) {
+        await logEvent(EVENTS.recruiterSignup)
+
+        if (referralCode) {
+            await logEvent(EVENTS.recruiterReferralSignup)
+        } else {
+            await logEvent(EVENTS.recruiterNonReferralSignup)
+        }
+    } else {
+        await logEvent(EVENTS.candidateSignup)
+
+        if (referralCode) {
+            await logEvent(EVENTS.candidateReferralSignup)
+        } else {
+            await logEvent(EVENTS.candidateNonReferralSignup)
+        }
     }
 })
 
@@ -260,19 +254,27 @@ router.delete('/', async (req, res) => {
         _id: userID
     }
 
+    let didDeleteUser = false
+    let user
     try {
-        const user = await User.findOneAndDelete(filter)
+        user = await User.findOneAndDelete(filter)
 
-        console.log(JSON.stringify(
-            {user, uid, userID}
-        , null, 4))
         if (user) {
             res.json({message: 'User deleted.'})
+            didDeleteUser = true
         } else {
             throw Error('No users matched those filters.')
         }
     } catch (error) {
         res.status(500).json({message: error.message})
+    }
+
+    if (didDeleteUser) {
+        if (user.isRecruiter) {
+            await logEvent(EVENTS.recruiterDeleteAccount)
+        } else {
+            await logEvent(EVENTS.candidateDeleteAccount)
+        }
     }
 })
 

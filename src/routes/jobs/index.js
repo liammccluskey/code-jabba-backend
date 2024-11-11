@@ -117,6 +117,10 @@ router.get('/:jobID', async (req, res) => {
             .populate('recruiter', 'displayName photoURL')
             .lean()
 
+        console.log(JSON.stringify(
+            {job}
+        , null, 4))
+
         const applications = await Application.find(applicationFilter)
             .lean()
 

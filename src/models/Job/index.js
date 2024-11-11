@@ -75,6 +75,14 @@ const JobSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    requiresClearance: {
+        type: Boolean,
+        required: true,
+    },
+    sponsorsVisa: {
+        type: String, // yes | no | possibly
+        required: true
+    },
 
     // optional
     location: {

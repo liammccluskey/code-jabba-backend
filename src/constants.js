@@ -15,14 +15,22 @@ const PAGE_SIZES = {
     rewardsSearch: 20,
 }
 
-// 'dev' | 'prod'
-const ENV = 'dev'
+const ENV = 'dev' // dev | prod
 
-const STRIPE_SECRET_KEY = ENV === 'dev' ? process.env.TEST_STRIPE_SECRET_KEY : process.env.LIVE_STRIPE_SECRET_KEY
+const STRIPE_SECRET_KEY = {
+    dev: process.env.STRIPE_SECRET_KEY_TEST,
+    prod: process.env.STRIPE_SECRET_KEY_LIVe
+}[ENV]
+
+const DOMAIN = {
+    dev: process.env.DOMAIN_TEST,
+    prod: process.env.DOMAIN_LIVE,
+}[ENV]
 
 module.exports = {
     MAX_PAGE_SIZE,
     PAGE_SIZES,
     ENV,
-    STRIPE_SECRET_KEY
+    STRIPE_SECRET_KEY,
+    DOMAIN
 }

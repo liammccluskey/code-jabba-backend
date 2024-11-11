@@ -4,6 +4,7 @@ require('dotenv/config')
 const User = require('../../models/User')
 const Notification = require('../../models/Notification')
 const {getUserFirstName} = require('../../models/User/utils')
+const { DOMAIN } = require('../../constants')
 
 const validateEmail = (email) => {
     return String(email)
@@ -106,7 +107,7 @@ const sendEmailNotification = async (notification, toUserWithDisplayName, toUser
 
         - The ${process.env.SITE_NAME} Team
 
-        You can unsubscribe from these emails at ${process.env.DOMAIN_NAME}/settings/advanced.
+        You can unsubscribe from these emails at ${DOMAIN}/settings/advanced.
         `
     }
 
@@ -175,7 +176,53 @@ const sendEmailNotificationIfEnabled = async (
         console.log(error)
         throw(error)
     }
-    return null
+}
+
+const postAppNotificationToAdminUsers = async (partialNotification) => {
+    try {
+        const filter = {
+            isAdmin: true
+        }
+        const adminUsers = await User.find(filter)
+            .select('')
+            .lean()
+
+        for (let i = 0; i < adminUsers.length; i++) {
+            const {_id} = adminUsers[i]
+            try {
+                await postAppNotification(partialNotification, _id)
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        throw error
+    }
+}
+
+const sendEmailNotificationToAdminUsers = async (notification) => {
+    try {
+        const filter = {
+            isAdmin: true
+        }
+        const adminUsers = await User.find(filter)
+            .select('displayName email')
+            .lean()
+
+        for (let i = 0; i < adminUsers.length; i++) {
+            const {displayName, email} = adminUsers[i]
+            
+            try {
+                await sendEmailNotification(notification, displayName, email)
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        throw error
+    }
 }
 
 module.exports = {
@@ -184,5 +231,7 @@ module.exports = {
     sendEmailNotification,
     postAppNotificationIfEnabled,
     sendEmailNotificationIfEnabled,
-    sendEmail
+    sendEmail,
+    postAppNotificationToAdminUsers,
+    sendEmailNotificationToAdminUsers,
 }

@@ -18,12 +18,6 @@ const ApplicationSchema = mongoose.Schema({
         required: true,
     },
 
-    // optional
-    questions: {
-        type: [{id: String, answer: String}],
-        required: false,
-    },
-
     //default
     status: {
         type: String, // applied | viewed | rejected | accepted

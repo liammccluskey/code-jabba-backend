@@ -1,60 +1,77 @@
 const express = require('express')
 const router = express.Router()
-require('dotenv/config')
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-const {SUBSCRIPTION_TIERS} = require('../../models/User/constants')
-const {SUBSCRIPTION_PRICE_IDS} = require('./constants')
+const {SUBSCRIPTION_TIERS, SUBSCRIPTION_PRICE_IDS} = require('../../models/Subscription/constants')
 const User = require('../../models/User')
+const Reward = require('../../models/Reward')
+const Subscription = require('../../models/Subscription')
+const { STRIPE_SECRET_KEY, DOMAIN } = require('../../constants')
+const { logEvent } = require('../events/utils')
+const { EVENTS } = require('../events/constants')
+
+const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
 // PATCH Routes
 
 router.patch('/cancel-subscription', async (req, res) => {
-    const {userID, stripeID} = req.body
+    const {userID} = req.body
+
+    let cancelledSubscription = false
     try {
-        const customer = await stripe.customers.retrieve(stripeID)
-
-        if (customer) {
-            const subscriptions = await stripe.subscriptions.list()
-            const subscription = subscriptions.data.find(sub => sub.customer === customer.id)
-
+        const [subscription] = await Subscription.find({user: userID})
+        
             if (subscription) {
-                await stripe.subscriptions.del(subscription.id)
-                await stripe.customers.del(customer.id)
-
-                const user = await User.findByIdAndUpdate(userID, {
-                    subscriptionTier: null
+                const {tier} = await Subscription.findByIdAndUpdate(subscription._id, {
+                    status: 'cancelled',
                 })
+                await stripe.subscriptions.del(subscription.stripeSubscriptionID)
+                await stripe.customers.del(subscription.stripeCustomerID)
+
+                cancelledSubscription = true
 
                 res.json({message: 'Successfully cancelled your subscription.'})
             } else {
-                throw Error('You do not have any active subscriptions.')
+                throw new Error('You have no active subscriptions.')
             }
-        } else {
-            throw Error('You do not have any active subscriptions.')
-        }
     } catch (error) {
         console.log(error)
         res.status(500).json({message: error.message})
+    }
+
+    if (cancelledSubscription) {
+        if (tier === SUBSCRIPTION_TIERS.candidatePremium) {
+            await logEvent(EVENTS.candidateCancelledPremium)
+        } else {
+            await logEvent(EVENTS.recruiterCancelledPremium)
+        }
     }
 })
 
 router.patch('/update-subscription', async (req, res) => {
     const {userID, userEmail, subscriptionTier} = req.body
+
+    let signedUpForPremium = false
     try {
         const customers = await stripe.customers.search({
             query: `email:\'${userEmail}\'`,
         })
         const [customer] = customers.data
 
-        if (customer && customer.subscriptions) {
-            const [subscription] = customer.subscriptions.data
+        if (customer) {
+            const subscriptions = await stripe.subscriptions.list()
+            const subscription = subscriptions.data.find(sub => sub.customer === customer.id) 
 
-            if (subscription && subscription.status === 'active') {
-                const user = await User.findByIdAndUpdate(userID, {
-                    subscriptionTier,
-                    stripeID: customer.id
+            if (subscription) {
+                const sub = new Subscription({
+                    user: userID,
+                    tier: subscriptionTier,
+                    stripeCustomerID: customer.id,
+                    stripeSubscriptionID: subscription.id
                 })
+
+                await sub.save()
+
+                signedUpForPremium = true
     
                 res.json({message: 'Successfully updated your subscription.'})
             } else {
@@ -63,24 +80,31 @@ router.patch('/update-subscription', async (req, res) => {
         } else {
             throw Error('We have no record of payment for your subscription.')
         }
+        
+        const rewards = await Reward.find({user: userID})
+        const signedUpByReferral = rewards.length > 0
 
-        // if (customer) {
-        //     const subscriptions = await stripe.subscriptions.list()
-        //     const subscription = subscriptions.data.find(sub => sub.customer === customer.id)
+        if (signedUpForPremium) {
+            await Reward.findOneAndUpdate({referree: userID, active: false}, {active: true})
 
-        //     if (subscription) {
-        //         const user = await User.findByIdAndUpdate(userID, {
-        //             subscriptionTier,
-        //             stripeID: customer.id
-        //         })
-    
-        //         res.json({message: 'Successfully updated your subscription.'})
-        //     } else {
-        //         throw Error('We have no record of payment for your subscription.')
-        //     }
-        // } else {
-        //     throw Error('We have no record of payment for your subscription.')
-        // }
+            if (subscriptionTier === SUBSCRIPTION_TIERS.candidatePremium) {
+                await logEvent(EVENTS.candidatePremiumSignup)
+
+                if (signedUpByReferral) {
+                    await logEvent(EVENTS.candidateReferralPremiumSignup)
+                } else {
+                    await logEvent(EVENTS.candidateNonReferralPremiumSignup)
+                }
+            } else {
+                await logEvent(EVENTS.recruiterPremiumSignup)
+
+                if (signedUpByReferral) {
+                    await logEvent(EVENTS.recruiterReferralPremiumSignup)
+                } else {
+                    await logEvent(EVENTS.recruiterNonReferralPremiumSignup)
+                }
+            }
+        }
     } catch (error) {
         console.log(error)
         res.status(500).json({message: error.message})
@@ -90,17 +114,21 @@ router.patch('/update-subscription', async (req, res) => {
 // POST Routes
 
 router.post('/create-checkout-session', async (req, res) => {
+    const {subscriptionTier} = req.body
+
+    const subscriptionPriceID = SUBSCRIPTION_PRICE_IDS[subscriptionTier]
+
     try {
         const session = await stripe.checkout.sessions.create({
             line_items: [
               {
-                price: SUBSCRIPTION_PRICE_IDS.premium,
+                price: subscriptionPriceID,
                 quantity: 1,
               },
             ],
             mode: 'subscription',
-            success_url: `http://${process.env.DOMAIN_NAME}/membership/checkoutsuccess`,
-            cancel_url: `http://${process.env.DOMAIN_NAME}/membership/checkoutcancel`,
+            success_url: `${DOMAIN}/membership/checkoutsuccess/${subscriptionTier}`,
+            cancel_url: `${DOMAIN}/membership/checkoutcancel`,
           })
         
           res.json({sessionURL: session.url})

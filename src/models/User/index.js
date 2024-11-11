@@ -20,6 +20,10 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    isRecruiter: {
+        type: Boolean,
+        required: true,
+    },
 
     // optional
     displayName: {
@@ -74,6 +78,7 @@ const UserSchema = mongoose.Schema({
         required: false,
         default: undefined,
         unique: true,
+        sparese: true,
     },
     githubURL: {
         type: String,
@@ -94,11 +99,6 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: false,
         default: null
-    },
-    isRecruiter: {
-        type: Boolean,
-        required: false,
-        default: false,
     },
     educations: {
         type: [{
@@ -219,16 +219,6 @@ const UserSchema = mongoose.Schema({
             }
         }
     },
-    stripeID: {
-        type: String,
-        required: false,
-        default: null
-    },
-    subscriptionTier: {
-        type: String,    // null | 'Premium'
-        required: false,
-        default: null
-    }
 }, {timestamps: true})
 
 UserSchema.index(
