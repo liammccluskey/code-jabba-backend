@@ -166,27 +166,6 @@ router.get('/value-delta-stats', async (req, res) => {
     }
 })
 
-router.get('/can-apply-to-job', async (req, res) => {
-    const {userID} = req.query
-
-    const filter = {
-        createdAt: {
-            $gte: moment().startOf('day').toDate()
-        }
-    }
-
-    try {
-        const applicationsCount = await Application.countDocuments(filter)
-
-        res.json({
-            canApply: applicationsCount >= 5
-        })
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({message: error.message})
-    }
-})
-
 router.get('/heatmap', async (req, res) => {
     const {userType, userID} = req.query
 
@@ -237,12 +216,12 @@ router.get('/:applicationID', async (req, res) => {
         const application = await Application.findById(applicationID)
             .populate({
                 path: 'job',
-                populate: {
-                    path: 'company',
-                    path: 'recruiter'
-                }
+                populate: [
+                    {path: 'company', select: 'name'},
+                    {path: 'recruiter', select: 'displayName'}
+                ]
             })
-            .populate('candidate')
+            .populate('candidate', 'skills languages')
             .lean()
 
         if (application) {

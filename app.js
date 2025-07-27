@@ -82,14 +82,11 @@ app.use('/jobs', jobsRoute)
 const applicationsRoute = require('./src/routes/applications')
 app.use('/applications', applicationsRoute)
 
-const rewardsRoute = require('./src/routes/rewards')
-app.use('/rewards', rewardsRoute)
-
 const contactUsRoute = require('./src/routes/contactus')
 app.use('/contact-us', contactUsRoute)
 
-const statsRoute = require('./src/routes/stats')
-app.use('/stats', statsRoute)
+// const statsRoute = require('./src/routes/stats')
+// app.use('/stats', statsRoute)
 
 const eventsRoute = require('./src/routes/events')
 app.use('/events', eventsRoute)

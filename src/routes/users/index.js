@@ -217,7 +217,7 @@ router.patch('/:_id', async (req, res) => {
 
     } catch (error) {
         console.log(error)
-        res.status(500).json({message: 'Either the LinkedIn URL or the phone number you entered is already exists.'})
+        res.status(500).json({message: 'Either the LinkedIn URL or the phone number you entered already exists.'})
     }
 })
 
