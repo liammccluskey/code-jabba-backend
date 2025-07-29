@@ -102,6 +102,65 @@ router.get('/recruiter-search', async (req, res) => {
     }
 })
 
+router.get('/candidate-search', async (req, res) => {
+    const {
+        pagesize = PAGE_SIZES.jobSearch,
+        page,
+        sortBy,
+        fetchCountOnly,
+        positions=[], // frontend | backend | full-stack | embedded | qa | test
+        types=[], // internship | part-time | contract | full-time
+        settings=[], // on-site | hybrid | remote
+        locations=[], // [string]
+        includedSkills=[], // [string]
+        excludedSkills=[], // [string]
+        includedLanguages=[], // [string]
+        excludedLanguages=[], // [string]
+        experienceLevels=[], // [entry | mid | senior | staff | principal]
+        experienceYears=[], // [0, 1 (1-2), 2 (3-4), 3 (5-6), 4 (7-8), 5 (9-10), 6 (11+)]
+    } = req.query
+    const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
+
+    const filter = {
+        archived: false,
+        $and: [
+            types.length ? { type: { $in: types } } : {},
+            settings.includes('remote') ? { setting: 'remote' }
+                : { $and: [
+                    settings.length ? { setting: { $in: settings }} : {},
+                    locations.length ? { location: { $in: locations }} : {}
+                ]},
+            positions.length ? { position: { $in: positions } } : {},
+            includedSkills.length ? { skills: { $in: includedSkills } } : {},
+            excludedSkills.length ? { skills: { $nin: excludedSkills } } : {},
+            includedLanguages.length ? { languages: { $in: includedLanguages } } : {},
+            excludedLanguages.length ? { languages: { $nin: excludedLanguages } } : {},
+            experienceLevels.length ? { experienceLevels: { $in: experienceLevels } } : {},
+            experienceYears.length ? { experienceYears: { $nin: experienceYears } } : {},
+          ]
+    }
+
+    try {
+        const count = await Job.countDocuments(filter)
+        const jobs = await Job.find(filter)
+            .sort(sortBy)
+            .skip((page - 1)*pageSize)
+            .limit(pageSize)
+            .select('')
+            .populate('company', 'name')
+            .lean()
+
+        res.json({
+            jobs,
+            pagesCount: Math.ceil(count / pageSize),
+            count,
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: error.message})
+    }
+})
+
 router.get('/:jobID', async (req, res) => {
     const {jobID} = req.params
     const {userID} = req.query

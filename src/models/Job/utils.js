@@ -68,6 +68,4 @@ const transformJob = (job, recruiterID=null, isPosting=false) => {
 
 module.exports = {
     transformJob,
-    getMinExperienceLevel,
-    getMinExperienceYears,
 }
