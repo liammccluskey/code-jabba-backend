@@ -54,7 +54,6 @@ router.get('/search', async (req, res) => {
     - optional query fields:
         - pagesize
         - name
-        - isAdmin
 */
 router.get('/recruiter-search', async (req, res) => {
     const {
@@ -107,7 +106,6 @@ router.get('/candidate-search', async (req, res) => {
         pagesize = PAGE_SIZES.jobSearch,
         page,
         sortBy,
-        fetchCountOnly,
         positions=[], // frontend | backend | full-stack | embedded | qa | test
         types=[], // internship | part-time | contract | full-time
         settings=[], // on-site | hybrid | remote
@@ -125,18 +123,18 @@ router.get('/candidate-search', async (req, res) => {
         archived: false,
         $and: [
             types.length ? { type: { $in: types } } : {},
-            settings.includes('remote') ? { setting: 'remote' }
+            settings.includes('remote') ? { setting: { $in: settings } }
                 : { $and: [
                     settings.length ? { setting: { $in: settings }} : {},
                     locations.length ? { location: { $in: locations }} : {}
                 ]},
             positions.length ? { position: { $in: positions } } : {},
-            includedSkills.length ? { skills: { $in: includedSkills } } : {},
-            excludedSkills.length ? { skills: { $nin: excludedSkills } } : {},
+            experienceLevels.length ? { experienceLevels: { $in: experienceLevels } } : {},
+            experienceYears.length ? { experienceYears: { $in: experienceYears } } : {},
             includedLanguages.length ? { languages: { $in: includedLanguages } } : {},
             excludedLanguages.length ? { languages: { $nin: excludedLanguages } } : {},
-            experienceLevels.length ? { experienceLevels: { $in: experienceLevels } } : {},
-            experienceYears.length ? { experienceYears: { $nin: experienceYears } } : {},
+            includedSkills.length ? { skills: { $in: includedSkills } } : {},
+            excludedSkills.length ? { skills: { $nin: excludedSkills } } : {},
           ]
     }
 
@@ -148,6 +146,7 @@ router.get('/candidate-search', async (req, res) => {
             .limit(pageSize)
             .select('')
             .populate('company', 'name')
+            .populate('recruiter', 'displayName')
             .lean()
 
         res.json({
@@ -173,12 +172,8 @@ router.get('/:jobID', async (req, res) => {
     try {
         const job = await Job.findById(jobID)
             .populate('company', 'name rating reviewCount')
-            .populate('recruiter', 'displayName photoURL')
+            .populate('recruiter', 'displayName')
             .lean()
-
-        console.log(JSON.stringify(
-            {job}
-        , null, 4))
 
         const applications = await Application.find(applicationFilter)
             .lean()

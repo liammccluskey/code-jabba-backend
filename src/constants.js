@@ -9,7 +9,7 @@ const PAGE_SIZES = {
     bugReports: 10,
     faqs: 10,
     companySearch: 20,
-    jobSearch: 20,
+    jobSearch: 2,
     candidateApplicationSearch: 20,
     recruiterApplicationSearch: 50,
     rewardsSearch: 20,

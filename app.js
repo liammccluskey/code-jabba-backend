@@ -91,6 +91,9 @@ app.use('/contact-us', contactUsRoute)
 const eventsRoute = require('./src/routes/events')
 app.use('/events', eventsRoute)
 
+const jobFiltersRoute = require('./src/routes/jobFilters')
+app.use('/job-filters', jobFiltersRoute)
+
 mongoose.connect(
     process.env.MONGO_DB_CONNECTION,
     {

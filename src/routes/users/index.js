@@ -20,7 +20,38 @@ const { EVENTS } = require('../events/constants')
 
 // GET Routes
 
-// get a user on login by firebase uid
+// // todo: subscriptions
+// // get a user on login by firebase uid
+// router.get('/uid/:uid', async (req, res) => {
+//     const {uid} = req.params
+
+//     try {
+//         // fetch user
+//         const user = await User.findOne({uid})
+//             .lean()
+
+//         // find and update subscription
+//         let [subscription] = await Subscription.find({user: user._id, status: 'active'})
+
+//         if (subscription) {
+//             const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionID)
+
+//             if (stripeSubscription && stripeSubscription.status !== 'active') {
+//                 subscription = await Subscription.findByIdAndUpdate(subscription._id, {
+//                     status: 'deleted',
+//                 })
+//             }
+//         }
+        
+//         user.subscription = subscription
+
+//         res.json(formatUser(user))
+//     } catch (error) {
+//         console.log(error)
+//         res.status(500).json({message: error.message})
+//     }
+// })
+
 router.get('/uid/:uid', async (req, res) => {
     const {uid} = req.params
 
@@ -28,22 +59,7 @@ router.get('/uid/:uid', async (req, res) => {
         // fetch user
         const user = await User.findOne({uid})
             .lean()
-
-        // find and update subscription
-        let [subscription] = await Subscription.find({user: user._id, status: 'active'})
-
-        if (subscription) {
-            const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionID)
-
-            if (stripeSubscription && stripeSubscription.status !== 'active') {
-                subscription = await Subscription.findByIdAndUpdate(subscription._id, {
-                    status: 'deleted',
-                })
-            }
-        }
-        
-        user.subscription = subscription
-
+            
         res.json(formatUser(user))
     } catch (error) {
         console.log(error)
