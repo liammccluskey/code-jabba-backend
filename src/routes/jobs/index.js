@@ -6,6 +6,7 @@ const Job = require('../../models/Job')
 const Application = require('../../models/Application')
 const {PAGE_SIZES, MAX_PAGE_SIZE} = require('../../constants')
 const {transformJob} = require('../../models/Job/utils')
+const {generateMongoFilterFromJobFilters} = require('./utils')
 
 // GET Routes
 /*
@@ -106,36 +107,35 @@ router.get('/candidate-search', async (req, res) => {
         pagesize = PAGE_SIZES.jobSearch,
         page,
         sortBy,
-        positions=[], // frontend | backend | full-stack | embedded | qa | test
         types=[], // internship | part-time | contract | full-time
         settings=[], // on-site | hybrid | remote
+        positions=[], // frontend | backend | full-stack | embedded | qa | test
         locations=[], // [string]
+        experienceLevels=[], // [entry | mid | senior | staff | principal]
+        experienceYears=[], // [0, 1 (1-2), 2 (3-4), 3 (5-6), 4 (7-8), 5 (9-10), 6 (11+)]
         includedSkills=[], // [string]
         excludedSkills=[], // [string]
         includedLanguages=[], // [string]
         excludedLanguages=[], // [string]
-        experienceLevels=[], // [entry | mid | senior | staff | principal]
-        experienceYears=[], // [0, 1 (1-2), 2 (3-4), 3 (5-6), 4 (7-8), 5 (9-10), 6 (11+)]
     } = req.query
     const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
 
+    const mongoFilterFromJobFilters = generateMongoFilterFromJobFilters({
+        types,
+        settings,
+        positions,
+        locations,
+        experienceLevels,
+        experienceYears,
+        includedSkills,
+        excludedSkills,
+        includedLanguages,
+        excludedLanguages,
+    })
+
     const filter = {
         archived: false,
-        $and: [
-            types.length ? { type: { $in: types } } : {},
-            settings.includes('remote') ? { setting: { $in: settings } }
-                : { $and: [
-                    settings.length ? { setting: { $in: settings }} : {},
-                    locations.length ? { location: { $in: locations }} : {}
-                ]},
-            positions.length ? { position: { $in: positions } } : {},
-            experienceLevels.length ? { experienceLevels: { $in: experienceLevels } } : {},
-            experienceYears.length ? { experienceYears: { $in: experienceYears } } : {},
-            includedLanguages.length ? { languages: { $in: includedLanguages } } : {},
-            excludedLanguages.length ? { languages: { $nin: excludedLanguages } } : {},
-            includedSkills.length ? { skills: { $in: includedSkills } } : {},
-            excludedSkills.length ? { skills: { $nin: excludedSkills } } : {},
-          ]
+        ...mongoFilterFromJobFilters
     }
 
     try {

@@ -3,6 +3,7 @@ const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
 require('dotenv/config')
+const qs = require('qs')
 
 const {hasAdminPrivileges} = require('./src/routes/admin/utils')
 const {ENV} = require('./src/constants')
@@ -11,6 +12,7 @@ const {ENV} = require('./src/constants')
 
 app.use(cors())
 app.use(express.json())
+app.set('query parser', str => qs.parse(str))
 
 app.use((req, res, next) => {
     if (ENV === 'dev') console.log(req.originalUrl)

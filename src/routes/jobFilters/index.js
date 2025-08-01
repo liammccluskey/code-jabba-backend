@@ -3,6 +3,7 @@ const router = express.Router()
 const moment = require('moment')
 
 const JobFilter = require('../../models/JobFilter')
+const {generateMongoFilterFromJobFilters} = require('../jobs/utils')
 
 // GET
 
@@ -16,11 +17,12 @@ router.get('/users/:userID', async (req, res) => {
             .sort('-createdAt')
             .lean()
 
-        console.log(JSON.stringify(
-            {jobFilters: jobFilters || 'no saved filters'}
-        , null, 4))
+        const updatedJobFilters = jobFilters.map(filter => ({
+            ...filter,
+            asMongoFilter: generateMongoFilterFromJobFilters(filter)
+        }))
 
-        res.json(jobFilters)
+        res.json(updatedJobFilters)
     } catch (error) {
         console.log(error)
         res.status(500).json({message: error.message})
