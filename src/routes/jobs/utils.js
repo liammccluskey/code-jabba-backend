@@ -58,8 +58,7 @@ const generateMongoFilterFromJobFilters = ({
         ]
     }
 
-    //return removeEmptyObjects(filter)
-    return filter
+    return removeEmptyObjects(filter)
 }
 module.exports = {
     generateMongoFilterFromJobFilters

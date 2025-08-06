@@ -65,24 +65,16 @@ router.get('/candidate-search', async (req, res) => {
     }
 })
 
-/*
-    - required query fields:
-        - page
-        - userID
-        - jobID
-        - sortBy
-    - optional query fields:
-        - pagesize
-        - status
-*/
 router.get('/recruiter-search', async (req, res) => {
     const {
         userID,
         jobID,
         sortBy,
+        page,
+        pagesize=PAGE_SIZES.recruiterApplicationSearch,
         status=undefined,
     } = req.query
-    pageSize = PAGE_SIZES.recruiterApplicationSearch
+    pageSize = Math.min(PAGE_SIZES.recruiterApplicationSearch, pagesize)
 
     const filter = {
         ...(status === undefined ? {} : {status}),
@@ -94,6 +86,8 @@ router.get('/recruiter-search', async (req, res) => {
         const count = await Application.countDocuments(filter)
         const applications = await Application.find(filter)
             .sort(sortBy)
+            .skip((page - 1)*pageSize)
+            .limit(pageSize)
             .select('status createdAt')
             .populate('candidate', 'displayName email')
             .lean()
@@ -108,14 +102,13 @@ router.get('/recruiter-search', async (req, res) => {
     }
 })
 
-//  required query fields
-//      - timeframe : week | month | year
-//      - userID
-//      - isRecruiter
-// optional query fields
-//      - jobID
 router.get('/value-delta-stats', async (req, res) => {
-    const {timeframe, userID, userType, jobID} = req.query
+    const {
+        timeframe,  // week | month | year
+        userID, 
+        userType, 
+        jobID = undefined
+    } = req.query
     const isRecruiterMode = userType === 'recruiter'
 
     let timeframeStart, previousTimeframeStart
@@ -167,7 +160,10 @@ router.get('/value-delta-stats', async (req, res) => {
 })
 
 router.get('/heatmap', async (req, res) => {
-    const {userType, userID} = req.query
+    const {
+        userType,  // recruiter | candidate
+        userID
+    } = req.query
 
     try {
         const startOfYear = moment().startOf('year')
@@ -209,8 +205,12 @@ router.get('/heatmap', async (req, res) => {
 })
 
 router.get('/:applicationID', async (req, res) => {
-    const {applicationID} = req.params
-    const {userID} = req.query
+    const {
+        applicationID
+    } = req.params
+    const {
+        userID
+    } = req.query
 
     try {
         const application = await Application.findById(applicationID)

@@ -96,12 +96,21 @@ app.use('/events', eventsRoute)
 const jobFiltersRoute = require('./src/routes/jobFilters')
 app.use('/job-filters', jobFiltersRoute)
 
-mongoose.connect(
-    process.env.MONGO_DB_CONNECTION,
-    {
-        useNewUrlParser: true, 
-        useUnifiedTopology: true,
-    },
-)
 
+const connectToMongoDB = async () => {
+    try {
+        await mongoose.connect(
+            process.env.MONGO_DB_CONNECTION,
+            {
+                useNewUrlParser: true, 
+                useUnifiedTopology: true,
+            },
+        )
+        console.log('connected to DB')
+    } catch (error) {
+        console.log('Error connecting to DB: ' + error)
+    }
+}
+
+connectToMongoDB()
 const server = app.listen(process.env.PORT || 3001)

@@ -34,6 +34,8 @@ router.get('/users/:userID', async (req, res) => {
 router.post('/', async (req, res) => {
     const {userID, title, filters} = req.body
 
+    delete filters._id
+
     const jobFilter = JobFilter({
         user: userID,
         title,
@@ -43,10 +45,7 @@ router.post('/', async (req, res) => {
     try {
         await jobFilter.save()
 
-        res.json({
-            message: 'Successfully saved job filter',
-            filterID: jobFilter._id
-        })
+        res.json({message: 'Successfully saved job filter'})
     } catch (error) {
         console.log(error)
         res.status(500).json({message: error.message})
