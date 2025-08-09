@@ -73,11 +73,13 @@ router.get('/recruiter-search', async (req, res) => {
         page,
         pagesize=PAGE_SIZES.recruiterApplicationSearch,
         status=undefined,
+        candidateName='',
     } = req.query
     pageSize = Math.min(PAGE_SIZES.recruiterApplicationSearch, pagesize)
 
     const filter = {
         ...(status === undefined ? {} : {status}),
+        ...(candidateName === '' ? {} : {$text: {$search: candidateName}}),
         recruiter: userID,
         job: jobID,
     }
@@ -205,12 +207,8 @@ router.get('/heatmap', async (req, res) => {
 })
 
 router.get('/:applicationID', async (req, res) => {
-    const {
-        applicationID
-    } = req.params
-    const {
-        userID
-    } = req.query
+    const { applicationID } = req.params
+    const { userID } = req.query
 
     try {
         const application = await Application.findById(applicationID)
@@ -221,12 +219,14 @@ router.get('/:applicationID', async (req, res) => {
                     {path: 'recruiter', select: 'displayName'}
                 ]
             })
-            .populate('candidate', 'skills languages')
+            .populate('candidate', '-isAdmin -isSuperAdmin -adminKey -superAdminKey')
             .lean()
 
         if (application) {
-            application.job.applied = true
             if (application.candidate._id == userID) {
+                application.job.applied = true
+                res.json(application)
+            } else if (application.recruiter === userID) {
                 res.json(application)
             } else {
                 res.status(500).json({message: 'You do not have access to this application.'})

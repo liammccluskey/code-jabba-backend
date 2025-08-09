@@ -7,6 +7,10 @@ const ApplicationSchema = mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    candidateName: {
+        type: String,
+        required: true,
+    },
     job: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Job',
@@ -47,6 +51,7 @@ const ApplicationSchema = mongoose.Schema({
 }, {timestamps: true})
 
 ApplicationSchema.index({job: 1, candidate: 1}, {unique: true})
+ApplicationSchema.index({ candidateName: 'text' })
 
 module.exports = mongoose.model('Application', ApplicationSchema)
 

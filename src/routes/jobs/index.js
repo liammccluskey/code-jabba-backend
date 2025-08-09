@@ -9,44 +9,7 @@ const {transformJob} = require('../../models/Job/utils')
 const {generateMongoFilterFromJobFilters} = require('./utils')
 
 // GET Routes
-/*
-    - required query fields:
-        - page
-    - optional query fields:
-        - pagesize
-*/
-router.get('/search', async (req, res) => {
-    const {
-        pagesize = PAGE_SIZES.companySearch,
-        page,
-    } = req.query
-    const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
 
-    const filter = {
-    }
-
-    try {
-        const count = await Job.countDocuments(filter)
-        const jobs = await Job.find(filter)
-            .sort({name: 1})
-            .skip((page - 1)*pageSize)
-            .limit(pageSize)
-            .select('name')
-            .lean()
-
-        res.json({
-            jobs,
-            canLoadMore: jobs.length == pageSize,
-            pagesCount: Math.ceil(count / pageSize),
-            totalCount: count
-        })
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({message: error.message})
-    }
-})
-
-// GET Routes
 /*
     - required query fields:
         - page
