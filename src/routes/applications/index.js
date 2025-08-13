@@ -220,14 +220,14 @@ router.get('/:applicationID', async (req, res) => {
                     {path: 'recruiter', select: 'displayName'}
                 ]
             })
-            .populate('candidate', HiddenUserKeys)
+            .populate('candidate', HiddenUserKeysSelectStatement)
             .lean()
 
         if (application) {
-            if (application.candidate._id == userID) {
+            if (String(application.candidate._id) === userID) {
                 application.job.applied = true
                 res.json(application)
-            } else if (application.recruiter === userID) {
+            } else if (String(application.recruiter) === userID) {
                 res.json(application)
             } else {
                 res.status(500).json({message: 'You do not have access to this application.'})
@@ -256,7 +256,8 @@ router.post('/', async (req, res) => {
 
 // PATCH Routes
 
-router.patch('/', async (req, res) => {
+router.patch('/update-status', async (req, res) => {
+
     try {
 
     } catch (error) {
