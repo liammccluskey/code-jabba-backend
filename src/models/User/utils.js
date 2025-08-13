@@ -99,7 +99,7 @@ const formatUser = user => {
             projectsCompleted && 
             questionsCompleted
         ,
-        canPostJobs: generalCompleted && socialsCompleted
+        canPostJobs: educationCompleted && socialsCompleted
     
     }
 }

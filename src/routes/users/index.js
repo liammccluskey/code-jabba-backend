@@ -2,11 +2,11 @@ const express = require('express')
 const router = express.Router()
 require('dotenv/config')
 const {STRIPE_SECRET_KEY} = require('../../constants')
-const stripe = require('stripe')(STRIPE_SECRET_KEY)
+// const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
 const User = require('../../models/User')
 const Reward = require('../../models/Reward')
-const Subscription = require('../../models/Subscription')
+// const Subscription = require('../../models/Subscription')
 const {MAX_PAGE_SIZE, PAGE_SIZES, ENV} = require('../../constants')
 const {APP_NOTIFICATIONS, EMAIL_NOTIFICATIONS} = require('./notifications')
 const {
@@ -14,9 +14,10 @@ const {
     sendEmailNotification
 } = require('../../utils/notifications')
 const { transformUser, formatUser } = require('../../models/User/utils')
-const {v4 : uuid} = require('uuid')
+// const {v4 : uuid} = require('uuid')
 const { logEvent } = require('../events/utils')
 const { EVENTS } = require('../events/constants')
+const {HiddenUserKeysSelectStatement} = require('../../models/User/constants')
 
 // GET Routes
 
@@ -59,8 +60,11 @@ router.get('/uid/:uid', async (req, res) => {
         // fetch user
         const user = await User.findOne({uid})
             .lean()
-            
-        res.json(formatUser(user))
+
+        if (user)
+            res.json(formatUser(user))
+        else
+            res.status(404).json({message: 'Could not find a user with the given uid.'})
     } catch (error) {
         console.log(error)
         res.status(500).json({message: error.message})
@@ -73,6 +77,7 @@ router.get('/_id/:_id', async (req, res) => {
 
     try {
         const user = await User.findById(_id)
+            .select(HiddenUserKeysSelectStatement)
             .lean()
         if (user) {
             res.json(user)
@@ -132,17 +137,13 @@ router.get('/search', async (req, res) => {
 //    - general app notification
 //    - general email notification
 router.post('/', async (req, res) => {
-    const {referralCode, isRecruiter} = req.body
-
     const user = ENV === 'dev' ?
         new User({
-            ...req.body.user,
+            ...req.body,
             isAdmin: true,
             adminKey: process.env.ADMIN_KEY,
         })
-        : new User(req.body.user)
-    user.referralCode = uuid()
-    user.isRecruiter = isRecruiter
+        : new User(req.body)
 
     try {
         await user.save()
@@ -159,46 +160,19 @@ router.post('/', async (req, res) => {
         } catch (error) {
             console.log(error)
         }
-        
-        if (referralCode) {
-            try {
-                const [referrer] = await User.find({referralCode})
-                    .select('_id')
-                    .lean()
-
-                if (referrer) {
-                    const reward = new Reward({
-                        referrer: referrer._id,
-                        referree: user._id
-                    })
-
-                    await reward.save()
-                }
-            } catch (error) {
-                console.log(error)
-            }
-        }
     } catch(error) {
         console.log(error)
         res.status(500).json({message: error.message})
     }
 
-    if (isRecruiter) {
-        await logEvent(EVENTS.recruiterSignup)
-
-        if (referralCode) {
-            await logEvent(EVENTS.recruiterReferralSignup)
+    try {
+        if (user.isRecruiter) {
+            await logEvent(EVENTS.recruiterSignup)
         } else {
-            await logEvent(EVENTS.recruiterNonReferralSignup)
+            await logEvent(EVENTS.candidateSignup)
         }
-    } else {
-        await logEvent(EVENTS.candidateSignup)
-
-        if (referralCode) {
-            await logEvent(EVENTS.candidateReferralSignup)
-        } else {
-            await logEvent(EVENTS.candidateNonReferralSignup)
-        }
+    } catch (error) {
+        console.log(error)
     }
 })
 
@@ -285,12 +259,16 @@ router.delete('/', async (req, res) => {
         res.status(500).json({message: error.message})
     }
 
-    if (didDeleteUser) {
-        if (user.isRecruiter) {
-            await logEvent(EVENTS.recruiterDeleteAccount)
-        } else {
-            await logEvent(EVENTS.candidateDeleteAccount)
+    try {
+        if (didDeleteUser) {
+            if (user.isRecruiter) {
+                await logEvent(EVENTS.recruiterDeleteAccount)
+            } else {
+                await logEvent(EVENTS.candidateDeleteAccount)
+            }
         }
+    } catch (error) {
+        console.log(error)
     }
 })
 

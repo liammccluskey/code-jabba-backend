@@ -7,6 +7,7 @@ const Application = require('../../models/Application')
 const Job = require('../../models/Job')
 const {percentDelta} = require('../../utils/misc')
 const {logEvent} = require('../events/utils')
+const {HiddenUserKeysSelectStatement} = require('../../models/User/constants')
 
 // GET Routes
 
@@ -219,7 +220,7 @@ router.get('/:applicationID', async (req, res) => {
                     {path: 'recruiter', select: 'displayName'}
                 ]
             })
-            .populate('candidate', '-isAdmin -isSuperAdmin -adminKey -superAdminKey')
+            .populate('candidate', HiddenUserKeys)
             .lean()
 
         if (application) {

@@ -16,10 +16,6 @@ const UserSchema = mongoose.Schema({
         unique: true,
         index: true
     },
-    referralCode: {
-        type: String,
-        required: true
-    },
     isRecruiter: {
         type: Boolean,
         required: true,
@@ -39,9 +35,7 @@ const UserSchema = mongoose.Schema({
     phoneNumber: {
         type: String,
         required: false,
-        unique: true,
-        default: undefined,
-        sparse: true,
+        default: undefined
     },
     address: {
         type: String,
@@ -231,5 +225,7 @@ UserSchema.index(
         }
     }
 )
+
+UserSchema.index({ phoneNumber: 1 }, { unique: true, sparse: true })
 
 module.exports = mongoose.model('User', UserSchema) 
