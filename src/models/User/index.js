@@ -189,13 +189,13 @@ const UserSchema = mongoose.Schema({
                 type: Boolean,
                 default: true
             },
-            announcementsEnabled: {
-                type: Boolean,
-                default: true
-            },
             socialEnabled: {
                 type: Boolean,
                 default: true
+            },
+            jobUpdatesEnabled: {
+                type: Boolean,
+                default: true,
             }
         },
         emailNotifications: {
@@ -203,13 +203,13 @@ const UserSchema = mongoose.Schema({
                 type: Boolean,
                 default: true
             },
-            announcementsEnabled: {
-                type: Boolean,
-                default: false
-            },
             socialEnabled: {
                 type: Boolean,
-                default: false
+                default: true
+            },
+            jobUpdatesEnabled: {
+                type: Boolean,
+                default: true
             }
         }
     },

@@ -224,11 +224,29 @@ router.get('/:applicationID', async (req, res) => {
             .lean()
 
         if (application) {
-            if (String(application.candidate._id) === userID) {
+            const userIsApplicationCandidate = String(application.candidate._id) === userID 
+            const userIsApplicationRecruiter = String(application.recruiter) === userID
+            if (userIsApplicationCandidate && !userIsApplicationRecruiter) {
                 application.job.applied = true
                 res.json(application)
-            } else if (String(application.recruiter) === userID) {
+
+                return
+            } else if (userIsApplicationRecruiter) {
+                let updatedStatusToViewed = false
+                const updatedStatusTimestamp = moment().toISOString()
+                if (application.status === 'applied') {
+                    application.status = 'viewed'
+                    application.viewedAt = updatedStatusTimestamp
+
+                    updatedStatusToViewed = true
+                }
                 res.json(application)
+
+                if (updatedStatusToViewed) {
+                    await Application.findOneAndUpdate({_id: applicationID}, {
+                        $set: {status: 'viewed', viewedAt: updatedStatusTimestamp}
+                    })
+                }
             } else {
                 res.status(500).json({message: 'You do not have access to this application.'})
             }
@@ -256,10 +274,46 @@ router.post('/', async (req, res) => {
 
 // PATCH Routes
 
-router.patch('/update-status', async (req, res) => {
+router.patch('/:applicationID', async (req, res) => {
+    const {applicationID} = req.params
+    const {status, userID} = req.body
 
     try {
+        const application = await Application.findById(applicationID)
+            .select('recruiter candidate')
+            .lean()
 
+        if (!application) {
+            res.status(404).json({message: 'Could not find any applications matching those filters.'})
+            return
+        } else if (
+            !(String(application.recruiter) === userID) && 
+            !(String(application.candidate) === userID)
+        ) {
+            res.status(403).json({message: 'You do not have permission to update the status of this application.'})
+            return
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: 'An error occurred updating this application status.'})
+        return
+    }
+
+    const filter = {_id: applicationID}
+
+    try {
+        const updatedApplication = await Application.findOneAndUpdate(filter, {
+            $set: {
+                status: status,
+                [`${status}At`]: moment().toISOString()
+            }
+        })
+
+        if (updatedApplication) {
+            res.status(200).json({message: 'Successfully updated application status.'})
+        } else {
+            res.status(404).json({message: 'No applications matched those filters.'})
+        }
     } catch (error) {
         res.status(500).json({message: error.message})
     }

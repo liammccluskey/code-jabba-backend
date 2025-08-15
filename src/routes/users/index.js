@@ -8,11 +8,8 @@ const User = require('../../models/User')
 const Reward = require('../../models/Reward')
 // const Subscription = require('../../models/Subscription')
 const {MAX_PAGE_SIZE, PAGE_SIZES, ENV} = require('../../constants')
-const {APP_NOTIFICATIONS, EMAIL_NOTIFICATIONS} = require('./notifications')
-const {
-    postAppNotification,
-    sendEmailNotification
-} = require('../../utils/notifications')
+const {NOTIFICATIONS} = require('./notifications')
+const {sendNotificationIfEnabled} = require('../../utils/notifications')
 const { transformUser, formatUser } = require('../../models/User/utils')
 // const {v4 : uuid} = require('uuid')
 const { logEvent } = require('../events/utils')
@@ -150,13 +147,10 @@ router.post('/', async (req, res) => {
         res.json({message: `Welcome to ${process.env.SITE_NAME}.`, userID: user._id})
 
         try {
-            await postAppNotification(APP_NOTIFICATIONS.welcomeToSite, user._id)
-        } catch (error) {
-            console.log(error)
-        }
-
-        try {
-            await sendEmailNotification(EMAIL_NOTIFICATIONS.welcomeToSite, user.displayName, user.email)
+            console.log(JSON.stringify(
+                {user}
+            , null, 4))
+            await sendNotificationIfEnabled(NOTIFICATIONS.welcomeToSite, user._id, true, true)
         } catch (error) {
             console.log(error)
         }
@@ -173,18 +167,6 @@ router.post('/', async (req, res) => {
         }
     } catch (error) {
         console.log(error)
-    }
-})
-
-router.post('/temporarypasswordemail', async (req, res) => {
-    const {password, displayName, email} = req.body
-
-    try {
-        await sendEmailNotification(EMAIL_NOTIFICATIONS.temporaryPassword(password), displayName, email)
-        res.json({message: 'Check your email for a temporary password.'})
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({message: error.message})
     }
 })
 

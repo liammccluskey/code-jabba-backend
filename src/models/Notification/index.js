@@ -4,7 +4,8 @@ const NotificationSchema = mongoose.Schema({
     // required
     channelID: {
         type: String,
-        required: true,
+        required: false,
+        default: null, // social | general | job-update
     },
     message: {
         type: String,

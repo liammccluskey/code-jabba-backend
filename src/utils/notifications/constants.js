@@ -2,8 +2,8 @@ require('dotenv/config')
 
 const CHANNEL_IDS = {
     general: 'general',
-    announcements: 'announcements',
     social: 'social',
+    jobUpdates: 'jobUpdates'
 }
 
 

@@ -1,27 +1,15 @@
-const {getUserFirstName} = require('../../models/User/utils')
+require('dotenv/config')
 const {CHANNEL_IDS} = require('../../utils/notifications/constants')
 
-const APP_NOTIFICATIONS = {
+const NOTIFICATIONS = {
     welcomeToSite: {
         channelID: CHANNEL_IDS.general,
+        subject: `${process.env.SITE_NAME} Account Created`,
         message: `Welcome to ${process.env.SITE_NAME}`,
-    }
-}
-
-const EMAIL_NOTIFICATIONS = {
-    welcomeToSite: {
-        channelID: CHANNEL_IDS.general,
-        subject: `${process.env.SITE_NAME} account created`,
-        message: `Welcome to ${process.env.SITE_NAME}`,
+        includeMessageWrapper: true
     },
-    temporaryPassword: password => ({
-        channelID: CHANNEL_IDS.general,
-        subject: `${process.env.SITE_NAME}: Temporary Password`,
-        message: `Your temporary password is:\n\n\t${password}`
-    }),
 }
 
 module.exports = {
-    APP_NOTIFICATIONS,
-    EMAIL_NOTIFICATIONS
+    NOTIFICATIONS
 }
