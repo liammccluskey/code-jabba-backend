@@ -8,6 +8,8 @@ const Job = require('../../models/Job')
 const {percentDelta} = require('../../utils/misc')
 const {logEvent} = require('../events/utils')
 const {HiddenUserKeysSelectStatement} = require('../../models/User/constants')
+const {NOTIFICATIONS} = require('./notifications')
+const {sendNotificationIfEnabled} = require('../../utils/notifications')
 
 // GET Routes
 
@@ -280,7 +282,7 @@ router.patch('/:applicationID', async (req, res) => {
 
     try {
         const application = await Application.findById(applicationID)
-            .select('recruiter candidate')
+            .select('recruiter candidate status')
             .lean()
 
         if (!application) {
@@ -292,6 +294,8 @@ router.patch('/:applicationID', async (req, res) => {
         ) {
             res.status(403).json({message: 'You do not have permission to update the status of this application.'})
             return
+        } else if (application.status === status) {
+            return
         }
     } catch (error) {
         console.log(error)
@@ -302,15 +306,40 @@ router.patch('/:applicationID', async (req, res) => {
     const filter = {_id: applicationID}
 
     try {
-        const updatedApplication = await Application.findOneAndUpdate(filter, {
-            $set: {
-                status: status,
-                [`${status}At`]: moment().toISOString()
-            }
-        })
+        const updatedApplication = await Application
+            .findOneAndUpdate(
+                filter, 
+                {
+                    $set: {
+                        status: status,
+                        [`${status}At`]: moment().toISOString()
+                    }
+                },
+                {new: true}
+            )
+            .populate({
+                path: 'job',
+                populate: [
+                    {path: 'company', select: 'name'},
+                    {path: 'recruiter', select: 'displayName'}
+                ]
+            })
+            .populate('candidate', 'displayName')
+            .populate('recruiter', 'displayName')
+            .lean()
 
         if (updatedApplication) {
             res.status(200).json({message: 'Successfully updated application status.'})
+
+            const notification = status === 'accepted' ? 
+                NOTIFICATIONS.applicationAccepted(updatedApplication)
+                : NOTIFICATIONS.applicationRejected(updatedApplication)
+
+            try {
+                sendNotificationIfEnabled(notification, updatedApplication.candidate, true, true)
+            } catch (error) {
+                console.log(error)
+            }
         } else {
             res.status(404).json({message: 'No applications matched those filters.'})
         }

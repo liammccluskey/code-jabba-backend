@@ -5,25 +5,17 @@ const {getUserFirstName} = require('../../models/User/utils')
 const User = require('../../models/User')
 const Notification = require('../../models/Notification')
 
-// returns {appNotificationEnabled:boolean, emailNotificationEnabled:boolean, displayName:string, email: string}
 const getUserAndChannelNotificationSettings = async (channelID, userID) => {
     const channelEnabledSettingField = `${channelID}Enabled`
-
-    const appChannelNoticationEnabledSettingPath = `settings.appNotifications.${channelEnabledSettingField}`
-    const emailChannelNoticationEnabledSettingPath = `settings.emailNotifications.${channelEnabledSettingField}`
 
     try {
         const user = await User.findById(userID)
             .lean()
-            .select(`${appChannelNoticationEnabledSettingPath} ${emailChannelNoticationEnabledSettingPath} displayName email`)
+            .select('settings displayName email')
 
         if (user) {
-            const appNotificationEnabled = user['settings']['appNotifcations'][channelEnabledSettingField]
-            const emailNotificationEnabled = user['settings']['emailNotifcations'][channelEnabledSettingField]
-
-            console.log(JSON.stringify(
-                {appChannelNoticationEnabledSettingPath, emailChannelNoticationEnabledSettingPath, appNotificationEnabled, emailNotificationEnabled}
-            , null, 4))
+            const appNotificationEnabled = user.settings.appNotifications[channelEnabledSettingField]
+            const emailNotificationEnabled = user.settings.emailNotifications[channelEnabledSettingField]
 
             const {displayName, email} = user
             return {
@@ -78,15 +70,14 @@ const sendEmailNotification = async (partialNotification, recipientEmail, recipi
         to: recipientEmail,
         subject,
         text: includeMessageWrapper ?
-            `
-            Hi ${getUserFirstName(recipientDisplayName)},
-            
-            ${message}
 
-            - The ${process.env.SITE_NAME} Team
+`Hi ${getUserFirstName(recipientDisplayName)},
 
-            You can unsubscribe from these emails at the ${process.env.SITE_NAME} advanced settings page.
-            `
+${message}
+
+- The ${process.env.SITE_NAME} Team
+
+You can unsubscribe from these emails at the ${process.env.SITE_NAME} advanced settings page.`
             : message
         ,
     }
@@ -105,7 +96,7 @@ const sendNotificationIfEnabled = async (
     partialNotification, 
     recipientUserID, 
     sendAppNotification, 
-    sendEmailNotification
+    sendEmail
 ) => {
     const {
         appNotificationEnabled,
@@ -118,7 +109,7 @@ const sendNotificationIfEnabled = async (
         await postAppNotification(partialNotification, recipientUserID)
     }
 
-    if (sendEmailNotification && emailNotificationEnabled) {
+    if (sendEmail && emailNotificationEnabled) {
         await sendEmailNotification(partialNotification, email, displayName)
     }
 }

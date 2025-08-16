@@ -147,9 +147,6 @@ router.post('/', async (req, res) => {
         res.json({message: `Welcome to ${process.env.SITE_NAME}.`, userID: user._id})
 
         try {
-            console.log(JSON.stringify(
-                {user}
-            , null, 4))
             await sendNotificationIfEnabled(NOTIFICATIONS.welcomeToSite, user._id, true, true)
         } catch (error) {
             console.log(error)
