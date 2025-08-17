@@ -80,6 +80,7 @@ router.get('/candidate-search', async (req, res) => {
         excludedSkills=[], // [string]
         includedLanguages=[], // [string]
         excludedLanguages=[], // [string]
+        companyID=null, // string
     } = req.query
     const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
 
@@ -94,6 +95,7 @@ router.get('/candidate-search', async (req, res) => {
         excludedSkills,
         includedLanguages,
         excludedLanguages,
+        companyID,
     })
 
     const filter = {

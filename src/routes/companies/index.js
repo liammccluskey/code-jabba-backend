@@ -36,6 +36,10 @@ router.get('/search', async (req, res) => {
             .select('name')
             .lean()
 
+        console.log(JSON.stringify(
+            {name, filter, count, companies}
+        , null, 4))
+
         res.json({
             companies,
             pagesCount: Math.ceil(count / pageSize),
@@ -138,18 +142,37 @@ router.post('/', async (req, res) => {
             message: `Successfully created company ${updatedCompany.name}.`,
             companyID: updatedCompany._id
         })
-    } catch (error) {   
+    } catch (error) {
+        if (error.code === 11000) {
+            const duplicateKey = Object.keys(error.keyValue)[0]
+            res.status(400).json({message: `A company with that ${duplicateKey} already exists.`})
+        } else {
+            console.log(error)
+            res.status(500).json({message: error.message})
+        }
         console.log(error)
-        res.status(500).json({message: error.message})
     }   
 })
 
 // PATCH Routes
 router.patch('/:companyID', async (req, res) => {
-    try {
+    const {companyID} = req.params
+    const {userID, company} = req.body
 
+    try {
+        const updatedCompany = await Company.findByIdAndUpdate(companyID, {
+            $set: company
+        })
+
+        res.json({message: 'Successfully updated company.'})
     } catch (error) {
-        res.status(500).json({message: error.message})
+        if (error.code === 11000) {
+            const duplicateKey = Object.keys(error.keyValue)[0]
+            res.status(400).json({message: `A company with that ${duplicateKey} already exists.`})
+        } else {
+            res.status(500).json({message: error.message})
+        }
+        console.log(error)
     }
 })
 

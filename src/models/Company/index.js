@@ -6,40 +6,32 @@ const CompanySchema = mongoose.Schema({
         type: String,
         required: true,
         unqiue: true,
-        index: true
-    },
-    description: {
-        type: String,
-        required: true,
-    },
-    headquarters: {
-        type: String,
-        required: true,
-    },
-    linkedInURL: {
-        type: String,
-        required: true,
-        unqiue: true
     },
 
     // optional
+    description: {
+        type: String,
+        required: false,
+        default: undefined
+    },
+    headquartersAddress: { // headquartersAddress
+        type: String,
+        required: false,
+        default: undefined
+    },
+    linkedInURL: {
+        type: String,
+        required: false,
+        default: undefined
+    },
     glassDoorURL: {
         type: String,
         required: false,
-        default: null
+        default: undefined
     },
 
+
     // default
-    pendingRecruiters: {
-        type: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User'
-            }
-        ],
-        required: false,
-        default: []
-    },
     recruiters: {
         type: [
             {
@@ -72,6 +64,9 @@ CompanySchema.index(
         }
     }
 )
+
+CompanySchema.index({ linkedInURL: 1 }, { unique: true, sparse: true })
+CompanySchema.index({ glassDoorURL: 1 }, { unique: true, sparse: true })
 
 module.exports = mongoose.model('Company', CompanySchema)
 

@@ -32,6 +32,7 @@ const generateMongoFilterFromJobFilters = ({
     excludedSkills, // [string]
     includedLanguages, // [string]
     excludedLanguages, // [string]
+    companyID, // string
 }) => {
     const filter = {
         $and: [
@@ -55,6 +56,7 @@ const generateMongoFilterFromJobFilters = ({
             excludedLanguages.length ? { languages: { $nin: excludedLanguages } } : {},
             includedSkills.length ? { skills: { $in: includedSkills } } : {},
             excludedSkills.length ? { skills: { $nin: excludedSkills } } : {},
+            companyID ? {company: companyID} : {},
         ]
     }
 
