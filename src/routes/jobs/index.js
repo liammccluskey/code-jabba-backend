@@ -1,24 +1,18 @@
 const express = require('express')
 const router = express.Router()
 const moment = require('moment')
+require('dotenv/config')
 
 const Job = require('../../models/Job')
 const Application = require('../../models/Application')
 const {PAGE_SIZES, MAX_PAGE_SIZE} = require('../../constants')
 const {transformJob} = require('../../models/Job/utils')
 const {generateMongoFilterFromJobFilters} = require('./utils')
+const Company = require('../../models/Company')
+const {transformCompany} = require('../../models/Company/utils')
 
 // GET Routes
 
-/*
-    - required query fields:
-        - page
-        - userID
-        - sortBy
-    - optional query fields:
-        - pagesize
-        - name
-*/
 router.get('/recruiter-search', async (req, res) => {
     const {
         pagesize = PAGE_SIZES.jobSearch,
@@ -70,7 +64,7 @@ router.get('/candidate-search', async (req, res) => {
         pagesize = PAGE_SIZES.jobSearch,
         page,
         sortBy,
-        types=[], // internship | part-time | contract | full-time
+        employmentTypes=[], // internship | part-time | contract | full-time
         settings=[], // on-site | hybrid | remote
         positions=[], // frontend | backend | full-stack | embedded | qa | test
         locations=[], // [string]
@@ -85,7 +79,7 @@ router.get('/candidate-search', async (req, res) => {
     const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
 
     const mongoFilterFromJobFilters = generateMongoFilterFromJobFilters({
-        types,
+        employmentTypes,
         settings,
         positions,
         locations,
@@ -168,9 +162,84 @@ router.post('/', async (req, res) => {
             message: `Successfully created job ${job.title}.`,
             jobID: updatedJob._id
         })
+
+        try {
+            await Company.updateOne({_id: job.company._id}, {
+                $addToSet: {recruiters: userID}
+            })
+        } catch (error) {
+            console.log(error)
+        }
     } catch (error) {   
         console.log(error)
         res.status(500).json({message: error.message})
+    }   
+})
+
+router.post('/job-post-service', async (req, res) => {
+    const {job} = req.body
+    const {companyName} = job
+
+    const companyFilter = {
+        $text: {
+            $search : companyName
+        }
+    }
+    let companyID = null
+    const recruiterID = process.env.MY_MONGO_USER_ID
+
+    if (!companyName) {
+        res.status(400).json({message: 'Error: You did not provide a company name.'})
+        return
+    }
+
+    try {
+        const [company=null] = await Company.find(companyFilter)
+            .select('_id')
+            .lean()
+
+        if (company) {
+            companyID = company._id
+
+            try {
+                await Company.updateOne({_id: companyID}, {
+                    $addToSet: {recruiters: recruiterID}
+                })
+            } catch (error) {
+                console.log('Failed to add recruiter to company recruiters.')
+                console.log(error.message)
+            }
+        } else {
+            const company = new Company(transformCompany({name: companyName}, recruiterID))
+            await company.save()
+
+            companyID = company._id
+        }
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({message: 'Failed to create/find company.'})
+        return
+    }
+
+    delete job.companyName
+    job.company = companyID
+    const updatedJob = new Job(transformJob(job, recruiterID, true))
+
+    try {
+        await updatedJob.save()
+
+        res.status(201).json({message: `Successfully created job ${job.title}.`})
+
+        try {
+            await Company.updateOne({_id: companyID}, {
+                $addToSet: {recruiters: userID}
+            })
+        } catch (error) {
+            console.log(error)
+        }
+    } catch (error) {   
+        console.log(error)
+        res.status(400).json({message: error.message})
     }   
 })
 
@@ -187,18 +256,16 @@ router.patch('/repost/:jobID', async (req, res) => {
         let job = await Job.findById(jobID)
             .lean()
 
-        if (job.recruiter != userID) {
-            res.status(500).json({message: 'You do not have access to make edits on this job.'})
+        if (!job) {
+            res.status(400).json({message: 'No jobs matched those filters'})
+            return
+        } else if (job.recruiter != userID) {
+            res.status(403).json({message: 'You do not have access to make edits on this job.'})
             return
         }
+        await Job.updateOne({_id: jobID, updatedFields})
 
-        job = await Job.findByIdAndUpdate(jobID, updatedFields)
-
-        if (job) {
-            res.json({message: 'Successfully reposted job.'})
-        } else {
-            res.status(500).json({message: 'No jobs matched those filters.'})
-        }
+        res.json({message: 'Successfully reposted job.'})
     } catch (error) {
         console.log(error)
         res.status(500).json({message: 'No jobs matched those filters.'})
@@ -217,7 +284,7 @@ router.patch('/:jobID', async (req, res) => {
             .lean()
 
         if (job.recruiter != userID) {
-            res.status(500).json({message: 'You do not have access to make edits on this job.'})
+            res.status(403).json({message: 'You do not have access to make edits on this job.'})
             return
         }
 

@@ -19,7 +19,7 @@ const JobFilterSchema = mongoose.Schema({
         type: [String],
         required: false,
     },
-    types: {
+    employmentTypes: {
         type: [String], // [ internship | part-time | contract | full-time ]
         required: false,
     },

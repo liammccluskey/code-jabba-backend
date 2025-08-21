@@ -83,7 +83,7 @@ router.get('/recruiter-search', async (req, res) => {
             {admins: userID}
             : {}
         ),
-        ...(isAdmin === null ?
+        ...(isAdmin === undefined ?
             {
                 $or: [
                     {admins: userID},

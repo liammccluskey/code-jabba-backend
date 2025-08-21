@@ -5,9 +5,8 @@ const {STRIPE_SECRET_KEY} = require('../../constants')
 // const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
 const User = require('../../models/User')
-const Reward = require('../../models/Reward')
 // const Subscription = require('../../models/Subscription')
-const {MAX_PAGE_SIZE, PAGE_SIZES, ENV} = require('../../constants')
+const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
 const {NOTIFICATIONS} = require('./notifications')
 const {sendNotificationIfEnabled} = require('../../utils/notifications')
 const { transformUser, formatUser } = require('../../models/User/utils')
@@ -134,7 +133,7 @@ router.get('/search', async (req, res) => {
 //    - general app notification
 //    - general email notification
 router.post('/', async (req, res) => {
-    const user = ENV === 'dev' ?
+    const user = process.env.PROFILE_ENV === 'DEV' ?
         new User({
             ...req.body,
             isAdmin: true,

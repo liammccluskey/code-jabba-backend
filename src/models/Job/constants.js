@@ -1,5 +1,5 @@
 const HOURS_PER_WEEK = 40
-const WORK_WEEKS_PER_YEAR = 49
+const WORK_WEEKS_PER_YEAR = 48
 const EXPERIENCE_LEVELS = [
     {id: 'entry', title: 'Entry'},
     {id: 'mid', title: 'Mid'},

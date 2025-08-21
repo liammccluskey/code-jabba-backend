@@ -20,7 +20,7 @@ const JobSchema = mongoose.Schema({
         type: String, // frontend | backend | full-stack | embedded | qa | test
         required: true,
     },
-    type: {
+    employmentType: {
         type: String, // internship | part-time | contract | full-time
         required: true,
     },
@@ -80,7 +80,7 @@ const JobSchema = mongoose.Schema({
         required: true,
     },
     sponsorsVisa: {
-        type: String, // yes | no | possibly
+        type: String, // visa-yes | visa-no | visa-possibly
         required: true
     },
 

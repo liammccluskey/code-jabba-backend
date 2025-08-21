@@ -6,7 +6,6 @@ require('dotenv/config')
 const qs = require('qs')
 
 const {hasAdminPrivileges} = require('./src/routes/admin/utils')
-const {ENV} = require('./src/constants')
 
 // Middleware
 
@@ -15,14 +14,14 @@ app.use(express.json())
 app.set('query parser', str => qs.parse(str))
 
 app.use((req, res, next) => {
-    if (ENV === 'dev') console.log(req.originalUrl)
+    if (process.env.PROFILE_ENV === 'DEV') console.log(req.originalUrl)
     next()
 })
 
 app.use((req, res, next) => {
-    const {heroku_api_key} = req.headers
+    const {api_key} = req.headers
 
-    if (heroku_api_key !== process.env.HEROKU_API_KEY) {
+    if (api_key !== process.env.CODE_JABBA_API_KEY) {
         res.status(500).send({message: 'Invalid api key.'})
     } else {
         next()

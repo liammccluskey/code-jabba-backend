@@ -9,28 +9,24 @@ const PAGE_SIZES = {
     bugReports: 10,
     faqs: 10,
     companySearch: 20,
-    jobSearch: 2,
+    jobSearch: 10,
     candidateApplicationSearch: 20,
     recruiterApplicationSearch: 50,
-    rewardsSearch: 20,
 }
 
-const ENV = 'dev' // dev | prod
-
 const STRIPE_SECRET_KEY = {
-    dev: process.env.STRIPE_SECRET_KEY_TEST,
-    prod: process.env.STRIPE_SECRET_KEY_LIVe
-}[ENV]
+    DEV: process.env.STRIPE_SECRET_KEY_TEST,
+    PROD: process.env.STRIPE_SECRET_KEY_LIVE
+}[process.env.PROFILE_ENV]
 
 const DOMAIN = {
-    dev: process.env.DOMAIN_TEST,
-    prod: process.env.DOMAIN_LIVE,
-}[ENV]
+    DEV: process.env.DOMAIN_TEST,
+    PROD: process.env.DOMAIN_LIVE,
+}[process.env.PROFILE_ENV]
 
 module.exports = {
     MAX_PAGE_SIZE,
     PAGE_SIZES,
-    ENV,
     STRIPE_SECRET_KEY,
     DOMAIN
 }

@@ -22,7 +22,7 @@ function removeEmptyObjects(obj) {
   }
 
 const generateMongoFilterFromJobFilters = ({
-    types, // [internship | part-time | contract | full-time]
+    employmentTypes, // [internship | part-time | contract | full-time]
     settings, // [on-site | hybrid | remote]
     positions, // [frontend | backend | full-stack | embedded | qa | test]
     locations, // [string]
@@ -36,7 +36,7 @@ const generateMongoFilterFromJobFilters = ({
 }) => {
     const filter = {
         $and: [
-            types.length ? { type: { $in: types } } : {},
+            employmentTypes.length ? { employmentType: { $in: employmentTypes } } : {},
             settings.includes('remote') ? { 
                 $or: [
                     {setting: 'remote'},

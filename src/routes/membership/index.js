@@ -3,7 +3,6 @@ const router = express.Router()
 
 const {SUBSCRIPTION_TIERS, SUBSCRIPTION_PRICE_IDS} = require('../../models/Subscription/constants')
 const User = require('../../models/User')
-const Reward = require('../../models/Reward')
 const Subscription = require('../../models/Subscription')
 const { STRIPE_SECRET_KEY, DOMAIN } = require('../../constants')
 const { logEvent } = require('../events/utils')
@@ -80,13 +79,8 @@ router.patch('/update-subscription', async (req, res) => {
         } else {
             throw Error('We have no record of payment for your subscription.')
         }
-        
-        const rewards = await Reward.find({user: userID})
-        const signedUpByReferral = rewards.length > 0
 
         if (signedUpForPremium) {
-            await Reward.findOneAndUpdate({referree: userID, active: false}, {active: true})
-
             if (subscriptionTier === SUBSCRIPTION_TIERS.candidatePremium) {
                 await logEvent(EVENTS.candidatePremiumSignup)
 
