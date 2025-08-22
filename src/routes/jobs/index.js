@@ -134,11 +134,12 @@ router.get('/:jobID', async (req, res) => {
             .populate('recruiter', 'displayName')
             .lean()
 
-        const applications = await Application.find(applicationFilter)
-            .lean()
+        const userApplicationsCount = await Application.countDocuments(applicationFilter)
+        const totalApplicationsCount = await Application.countDocuments({job: jobID})
 
         if (job) {
-            job.applied = applications.length > 0
+            job.applied = userApplicationsCount > 0
+            job.applicationsCount = totalApplicationsCount
             res.json(job)
         } else {
             throw new Error('No jobs matched those filters.')
@@ -207,7 +208,7 @@ router.post('/job-post-service', async (req, res) => {
                 })
             } catch (error) {
                 console.log('Failed to add recruiter to company recruiters.')
-                console.log(error.message)
+                console.log(error)
             }
         } else {
             const company = new Company(transformCompany({name: companyName}, recruiterID))
@@ -216,7 +217,7 @@ router.post('/job-post-service', async (req, res) => {
             companyID = company._id
         }
     } catch (error) {
-        console.log(error.message)
+        console.log(error)
         res.status(500).json({message: 'Failed to create/find company.'})
         return
     }
@@ -273,6 +274,23 @@ router.patch('/repost/:jobID', async (req, res) => {
 })
 
 // PATCH Routes
+router.patch('/job-archive-service', async (req, res) => {
+    const jobFilter = {
+        postedAt: { $lte: moment().subtract(1, 'month').toDate()},
+        archive: true,
+    }
+
+    try {
+        const jobsToArchiveCount = await Job.countDocuments(jobFilter)
+
+        await Job.updateMany(jobFilter, {archived: true})
+
+        res.json({message: `Successfully archived ${jobsToArchiveCount} jobs.`})
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
 router.patch('/:jobID', async (req, res) => {
     const {updatedFields, userID} = req.body
     const {jobID} = req.params

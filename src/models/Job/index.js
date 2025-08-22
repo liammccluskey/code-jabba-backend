@@ -72,7 +72,7 @@ const JobSchema = mongoose.Schema({
         required: true
     },
     postedAt: {
-        type: String,
+        type: Date,
         required: true
     },
     requiresClearance: {

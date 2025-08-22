@@ -34,17 +34,17 @@ const ApplicationSchema = mongoose.Schema({
         default: false
     },
     viewedAt: {
-        type: String,
+        type: Date,
         required: false,
         default: null,
     },
     rejectedAt: {
-        type: String,
+        type: Date,
         required: false,
         default: null,
     },
     acceptedAt: {
-        type: String,
+        type: Date,
         required: false,
         default: null,
     },
