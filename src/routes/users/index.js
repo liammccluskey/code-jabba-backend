@@ -35,12 +35,10 @@ const {HiddenUserKeysSelectStatement} = require('../../models/User/constants')
 
 //             if (stripeSubscription && stripeSubscription.status !== 'active') {
 //                 subscription = await Subscription.findByIdAndUpdate(subscription._id, {
-//                     status: 'deleted',
+//                     status: stripeSubscription.status,
 //                 })
-//             }
+//             } else user.subscription = subscription
 //         }
-        
-//         user.subscription = subscription
 
 //         res.json(formatUser(user))
 //     } catch (error) {

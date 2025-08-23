@@ -10,6 +10,8 @@ const {transformJob} = require('../../models/Job/utils')
 const {generateMongoFilterFromJobFilters} = require('./utils')
 const Company = require('../../models/Company')
 const {transformCompany} = require('../../models/Company/utils')
+const Subscription = require('../../models/Subscription')
+const {SUBSCRIPTION_TIERS} = require('../../models/Subscription/constants')
 
 // GET Routes
 
@@ -153,6 +155,21 @@ router.get('/:jobID', async (req, res) => {
 // POST Routes
 router.post('/', async (req, res) => {
     const {userID, job} = req.body
+
+    const subscriptionFilter = {user: userID, status: 'active'}
+    const jobsFilter = {recruiter: userID, archived: false}
+
+    try {
+        const subscriptionsCount = Subscription.countDocuments(subscriptionsFilter)
+        const activeJobsCount = Job.countDocuments(jobsFilter)
+
+        if (subscriptionsCount == 0 && activeJobsCount >= 1 && process.env.PROFILE_ENV === 'PROD') {
+            res.status(403).json({message: 'You must sign up for Recruiter Premium to have more than one active job post at a time.'})
+        }
+    } catch (error) {
+        console.log('Failed to find subscriptions or active jobs')
+        res.status(500).json({message: 'Failed to verify ability to post job.'})
+    }
 
     const updatedJob = new Job(transformJob(job, userID, true))
 

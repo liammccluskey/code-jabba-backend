@@ -19,7 +19,7 @@ const STRIPE_SECRET_KEY = {
     PROD: process.env.STRIPE_SECRET_KEY_LIVE
 }[process.env.PROFILE_ENV]
 
-const DOMAIN = {
+const CODE_JABBA_DOMAIN = {
     DEV: process.env.DOMAIN_TEST,
     PROD: process.env.DOMAIN_LIVE,
 }[process.env.PROFILE_ENV]
@@ -28,5 +28,5 @@ module.exports = {
     MAX_PAGE_SIZE,
     PAGE_SIZES,
     STRIPE_SECRET_KEY,
-    DOMAIN
+    CODE_JABBA_DOMAIN
 }

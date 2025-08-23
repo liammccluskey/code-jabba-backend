@@ -213,6 +213,10 @@ const UserSchema = mongoose.Schema({
             }
         }
     },
+    stripeCustomerID: {
+        type: String,
+        default: undefined,
+    }
 }, {timestamps: true})
 
 UserSchema.index(

@@ -23,7 +23,7 @@ const SubscriptionSchema = mongoose.Schema({
     
     // default
     status: { 
-        type: String, // active | cancelled | deleted
+        type: String, // active | incomplete | trialing | past_due | canceled | unpaid
         required: false,
         default: 'active'
     }
