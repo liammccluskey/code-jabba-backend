@@ -3,7 +3,8 @@ require('dotenv/config')
 const CHANNEL_IDS = {
     general: 'general',
     social: 'social',
-    jobUpdates: 'jobUpdates'
+    jobUpdates: 'jobUpdates',
+    subscriptionUpdates: 'subscriptionUpdates',
 }
 
 

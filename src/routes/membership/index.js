@@ -7,6 +7,8 @@ const Subscription = require('../../models/Subscription')
 const { STRIPE_SECRET_KEY, CODE_JABBA_DOMAIN } = require('../../constants')
 const { logEvent } = require('../events/utils')
 const { EVENTS } = require('../events/constants')
+const {sendNotificationIfEnabled} = require('../../utils/notifications')
+const {NOTIFICATIONS}  = require('./notifications')
 
 const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
@@ -19,70 +21,12 @@ router.patch('/cancel-subscription', async (req, res) => {
         const [subscription=null] = await Subscription.find({user: userID})
             .lean()
         
-            if (subscription) {
-                await Subscription.findByIdAndUpdate(subscription._id, {
-                    status: 'canceled',
-                })
-                await stripe.subscriptions.del(subscription.stripeSubscriptionID, {at_period_end: true})
+        if (subscription) {
+            await stripe.subscriptions.del(subscription.stripeSubscriptionID, {at_period_end: true})
 
-                res.json({message: 'Successfully cancelled your subscription.'})
-            } else {
-                res.status(404).json({message: 'Could not find a subscription for this user'})
-            }
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({message: error.message})
-    }
-
-    if (cancelledSubscription) {
-        if (tier === SUBSCRIPTION_TIERS.candidatePremium) {
-            await logEvent(EVENTS.candidateCancelledPremium)
+            res.json({message: 'Successfully cancelled your subscription. You should receive email confirmation of the cancellation shortly.'})
         } else {
-            await logEvent(EVENTS.recruiterCancelledPremium)
-        }
-    }
-})
-
-router.patch('/update-subscription', async (req, res) => {
-    const {userID, userEmail, subscriptionTier} = req.body
-
-    let signedUpForPremium = false
-    try {
-        const customers = await stripe.customers.search({
-            query: `email:\'${userEmail}\'`,
-        })
-        const [customer] = customers.data
-
-        if (customer) {
-            const subscriptions = await stripe.subscriptions.list()
-            const subscription = subscriptions.data.find(sub => sub.customer === customer.id) 
-
-            if (subscription) {
-                const sub = new Subscription({
-                    user: userID,
-                    tier: subscriptionTier,
-                    stripeCustomerID: customer.id,
-                    stripeSubscriptionID: subscription.id
-                })
-
-                await sub.save()
-
-                signedUpForPremium = true
-    
-                res.json({message: 'Successfully updated your subscription.'})
-            } else {
-                throw Error('We have no record of payment for your subscription.')
-            }
-        } else {
-            throw Error('We have no record of payment for your subscription.')
-        }
-
-        if (signedUpForPremium) {
-            if (subscriptionTier === SUBSCRIPTION_TIERS.candidatePremium) {
-                await logEvent(EVENTS.candidatePremiumSignup)
-            } else {
-                await logEvent(EVENTS.recruiterPremiumSignup)
-            }
+            res.status(404).json({message: 'Could not find an active subscription for this user.'})
         }
     } catch (error) {
         console.log(error)
@@ -193,12 +137,29 @@ router.post('/webhook', async (req, res) => {
             case 'invoice.payment_succeeded': {
                 const invoice = event.data.object
                 const subscriptionID = invoice.subscription
-                const customerId = invoice.customer
 
-                await Subscription.findOneAndUpdate(
+                const subscription = await Subscription.findOneAndUpdate(
                     { stripeSubscriptionID: subscriptionID },
                     { status: 'active' }
-                )
+                ).select('userID')
+                .lean()
+
+                if (!subscription) {
+                    const errorMessage = 'Could not find a subscription matching the given subscriptionID.'
+                    console.log(errorMessage)
+                    throw Error(errorMessage)
+                }
+
+                try {
+                    const {userID} = subscription
+    
+                    if (invoice.billing_reason === 'subscription_create') {
+                        await sendNotificationIfEnabled(NOTIFICATIONS.recruiterPremiumPaymentSuccess, userID, true, true)
+                        await logEvent(EVENTS.recruiterPremiumSignup, userID)
+                    }
+                } catch (error) {
+                    console.log('Failed to send initial subscription payment success update.')
+                }
 
                 break
             }
@@ -207,10 +168,25 @@ router.post('/webhook', async (req, res) => {
                 const invoice = event.data.object
                 const subscriptionID = invoice.subscription
 
-                await Subscription.findOneAndUpdate(
-                    { stripeSubscriptionId: subscriptionId },
+                const subscription = await Subscription.findOneAndUpdate(
+                    { stripeSubscriptionID: subscriptionID },
                     { status: 'past_due' }
-                )
+                ).select('userID')
+                .lean()
+
+                if (!subscription) {
+                    const errorMessage = 'Could not find a subscription matching the given subscriptionID.'
+                    console.log(errorMessage)
+                    throw Error(errorMessage)
+                }
+
+                try {
+                    const {userID} = subscription
+                    
+                    await sendNotificationIfEnabled(NOTIFICATIONS.recruiterPremiumPaymentFailed, userID, true, true)
+                } catch (error) {
+                    console.log('Failed to send subscription cancellation email/app update.')
+                }
 
                 break
             }
@@ -223,6 +199,13 @@ router.post('/webhook', async (req, res) => {
                     { user: userID },
                     { status: 'canceled' }
                 )
+
+                try {
+                    await sendNotificationIfEnabled(NOTIFICATIONS.recruiterPremiumCancellation, userID, true, true)
+                    await logEvent(EVENTS.recruiterPremiumCancellation, userID)
+                } catch (error) {
+                    console.log('Failed to send subscription cancellatino email/app update.')
+                }
 
                 break
             }

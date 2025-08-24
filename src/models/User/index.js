@@ -196,6 +196,10 @@ const UserSchema = mongoose.Schema({
             jobUpdatesEnabled: {
                 type: Boolean,
                 default: true,
+            },
+            subscriptionUpdatesEnabled: {
+                type: Boolean,
+                default: true,
             }
         },
         emailNotifications: {
@@ -210,6 +214,10 @@ const UserSchema = mongoose.Schema({
             jobUpdatesEnabled: {
                 type: Boolean,
                 default: true
+            },
+            subscriptionUpdatesEnabled: {
+                type: Boolean,
+                default: true,
             }
         }
     },

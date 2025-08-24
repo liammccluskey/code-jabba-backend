@@ -115,8 +115,11 @@ const sendNotificationIfEnabled = async (
 }
 
 
-
+const sendEmailNotificationToAdminUser = async (partialNotification) => {
+    await sendEmailNotification(partialNotification, process.env.ADMIN_EMAIL, process.env.ADMIN_NAME)
+}
 
 module.exports = {
-    sendNotificationIfEnabled
+    sendNotificationIfEnabled,
+    sendEmailNotificationToAdminUser
 }

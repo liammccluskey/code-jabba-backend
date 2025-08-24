@@ -1,8 +1,8 @@
 const express = require('express')
 const router = express.Router()
 
-const {sendEmailNotificationToAdminUsers} = require('../../utils/notifications')
-const {EMAIL_NOTIFICATIONS} = require('./notifications')
+const {sendEmailNotificationToAdminUser} = require('../../utils/notifications')
+const {NOTIFICATIONS} = require('./notifications')
 
 // POST Routes
 
@@ -10,9 +10,9 @@ router.post('/send-contact-email', async (req, res) => {
     const {userEmail, message} = req.body
 
     try {
-        const notification = EMAIL_NOTIFICATIONS.contactUsMessage(userEmail, message)
+        const notification = NOTIFICATIONS.contactUsMessage(userEmail, message)
 
-        await sendEmailNotificationToAdminUsers(notification)
+        await sendEmailNotificationToAdminUser(notification)
 
         res.json({message: "Successfully sent message. We'll respond to you shortly."})
     } catch (error) {

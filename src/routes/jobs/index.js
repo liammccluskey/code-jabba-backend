@@ -250,7 +250,7 @@ router.post('/job-post-service', async (req, res) => {
 
         try {
             await Company.updateOne({_id: companyID}, {
-                $addToSet: {recruiters: userID}
+                $addToSet: {recruiters: recruiterID}
             })
         } catch (error) {
             console.log(error)
