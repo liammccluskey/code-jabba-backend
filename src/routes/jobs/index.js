@@ -198,6 +198,10 @@ router.post('/job-post-service', async (req, res) => {
     const {job} = req.body
     const {companyName} = job
 
+    console.log(JSON.stringify(
+        {clearance: job.requiresClearance || 'no clearnce mentioned'}
+    , null, 4))
+
     const companyFilter = {
         $text: {
             $search : companyName

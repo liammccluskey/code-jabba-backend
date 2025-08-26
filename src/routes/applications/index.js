@@ -324,7 +324,7 @@ router.patch('/:applicationID', async (req, res) => {
                     {path: 'recruiter', select: 'displayName'}
                 ]
             })
-            .populate('candidate', 'displayName')
+            .populate('candidate', 'displayName minExperienceLevel maxExperienceLevel')
             .populate('recruiter', 'displayName')
             .lean()
 

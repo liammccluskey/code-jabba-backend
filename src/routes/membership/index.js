@@ -18,7 +18,7 @@ router.patch('/cancel-subscription', async (req, res) => {
     const {userID} = req.body
 
     try {
-        const [subscription=null] = await Subscription.find({user: userID})
+        const subscription = await Subscription.findOne({user: userID})
             .lean()
         
         if (subscription) {

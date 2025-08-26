@@ -2,10 +2,10 @@ const express = require('express')
 const router = express.Router()
 require('dotenv/config')
 const {STRIPE_SECRET_KEY} = require('../../constants')
-// const stripe = require('stripe')(STRIPE_SECRET_KEY)
+const stripe = require('stripe')(STRIPE_SECRET_KEY)
 
 const User = require('../../models/User')
-// const Subscription = require('../../models/Subscription')
+const Subscription = require('../../models/Subscription')
 const {MAX_PAGE_SIZE, PAGE_SIZES} = require('../../constants')
 const {NOTIFICATIONS} = require('./notifications')
 const {sendNotificationIfEnabled} = require('../../utils/notifications')
@@ -228,8 +228,15 @@ router.delete('/', async (req, res) => {
         if (user) {
             res.json({message: 'User deleted.'})
             didDeleteUser = true
+
+            const subscription = await Subscription.findOne({user: userID})
+                .lean()
+            if (subscription) {
+                await stripe.subscriptions.del(subscription.stripeSubscriptionID)
+            }
         } else {
             throw Error('No users matched those filters.')
+            res.status(404).json({message: 'No users matched those filters'})
         }
     } catch (error) {
         res.status(500).json({message: error.message})
