@@ -1,6 +1,6 @@
 const moment = require('moment')
 
-const {HOURS_PER_WEEK, WORK_WEEKS_PER_YEAR} = require('./constants')
+const {HOURS_PER_WEEK, WORK_WEEKS_PER_YEAR, SKILLS, LANGUAGES} = require('./constants')
 
 const getMinExperienceLevel = experienceLevels => {
     if (experienceLevels.includes('entry')) return 'entry'
@@ -61,6 +61,22 @@ const transformJob = (job, recruiterID=null, isPosting=false) => {
 
     if (isPosting) {
         job.postedAt = moment().toISOString()
+    }
+
+    if (Array.isArray(job.skills)) {
+        const validSkills = {}
+        SKILLS.forEach( skill => validSkills[skill] = 1 )
+
+        const filteredSkills = job.skills.filter( skill => skill in validSkills )
+        job.skills = filteredSkills
+    }
+
+    if (Array.isArray(job.languages)) {
+        const validLanguages = {}
+        LANGUAGES.forEach( language => validLanguages[language] = 1 )
+
+        const filteredLanguages = job.languages.filter( language => language in validLanguages )
+        job.languages = filteredLanguages
     }
 
     return job

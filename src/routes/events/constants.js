@@ -10,8 +10,8 @@ const BACKEND_EVENTS = {
     recruiterDeleteAccount: 'Recruiter delete account',
 
     // Subscription 
-    // candidatePremiumSignup: 'Candidate premium signup',
-    // candidatePremiumCancellation: 'Candidate cancelled premium',
+    candidatePremiumSignup: 'Candidate premium signup',
+    candidatePremiumCancellation: 'Candidate cancelled premium',
     recruiterPremiumSignup: 'Recruiter Premium signup',
     recruiterPremiumCancellation: 'Recruiter Premium cancellation',
 }

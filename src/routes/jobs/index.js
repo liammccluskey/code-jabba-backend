@@ -198,10 +198,6 @@ router.post('/job-post-service', async (req, res) => {
     const {job} = req.body
     const {companyName} = job
 
-    console.log(JSON.stringify(
-        {clearance: job.requiresClearance || 'no clearnce mentioned'}
-    , null, 4))
-
     const companyFilter = {
         $text: {
             $search : companyName
@@ -211,6 +207,7 @@ router.post('/job-post-service', async (req, res) => {
     const recruiterID = process.env.MY_MONGO_USER_ID
 
     if (!companyName) {
+        console.log('No company name provided')
         res.status(400).json({message: 'Error: You did not provide a company name.'})
         return
     }

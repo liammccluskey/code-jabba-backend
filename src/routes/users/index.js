@@ -235,8 +235,8 @@ router.delete('/', async (req, res) => {
                 await stripe.subscriptions.del(subscription.stripeSubscriptionID)
             }
         } else {
-            throw Error('No users matched those filters.')
             res.status(404).json({message: 'No users matched those filters'})
+            return
         }
     } catch (error) {
         res.status(500).json({message: error.message})
