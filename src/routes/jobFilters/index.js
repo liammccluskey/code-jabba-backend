@@ -4,11 +4,31 @@ const moment = require('moment')
 
 const JobFilter = require('../../models/JobFilter')
 const {generateMongoFilterFromJobFilters} = require('../jobs/utils')
+const Subscription = require('../../models/Subscription')
+const {SUBSCRIPTION_TIERS} = require('../../models/Subscription/constants')
 
 // GET
 
 router.get('/users/:userID', async (req, res) => {
     const {userID} = req.params
+
+    const subscriptionFilter = {
+        user: userID,
+        tier: SUBSCRIPTION_TIERS.candidatePremium
+    }
+
+    try {
+        const subscriptionCount = await Subscription.countDocuments(subscriptionFilter)
+
+        if (subscriptionCount == 0) {
+            res.json([])
+            return
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: 'Could not retrieve saved filters.'})
+        return
+    }
 
     const filter = {user: userID}
 

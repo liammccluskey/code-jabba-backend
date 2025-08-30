@@ -212,6 +212,7 @@ router.post('/job-post-service', async (req, res) => {
         return
     }
 
+    // find companyID, create new company if it doesn't exist
     try {
         const [company=null] = await Company.find(companyFilter)
             .select('_id')
@@ -244,6 +245,27 @@ router.post('/job-post-service', async (req, res) => {
     job.company = companyID
     const updatedJob = new Job(transformJob(job, recruiterID, true))
 
+    // check if job already exists
+    const jobFilter = {
+        company: companyID,
+        title: job.title,
+        location: job.location,
+        archived: false
+    }
+
+    try {
+        const jobsCount = await Job.countDocuments(jobFilter)
+
+        if (jobsCount >= 1) {
+            res.status(400).json({message: "The job you're trying to create already exists."})
+            return
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: 'Unable to verify whether job already exists.'})
+    }
+
+    // create and save job
     try {
         await updatedJob.save()
 

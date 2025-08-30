@@ -209,6 +209,24 @@ router.get('/heatmap', async (req, res) => {
     }
 })
 
+router.get('/daily-count', async (req, res) => {
+    const {userID} = req.query
+
+    const applicationFilter = {
+        candidate: userID,
+        createdAt: {$gte: moment().startOf('day').toDate()}
+    }
+
+    try {
+        const applicationsCount = await Application.countDocuments(applicationFilter)
+
+        res.json(applicationsCount)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: 'Could not retrieve daily applications count.'})
+    }
+})
+
 router.get('/:applicationID', async (req, res) => {
     const { applicationID } = req.params
     const { userID } = req.query

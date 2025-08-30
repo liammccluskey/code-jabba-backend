@@ -36,10 +36,6 @@ router.get('/search', async (req, res) => {
             .select('name')
             .lean()
 
-        console.log(JSON.stringify(
-            {name, filter, count, companies}
-        , null, 4))
-
         res.json({
             companies,
             pagesCount: Math.ceil(count / pageSize),
