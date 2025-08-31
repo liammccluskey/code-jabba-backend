@@ -97,7 +97,7 @@ router.post('/create-checkout-session', async (req, res) => {
     }
 })
 
-router.post('/webhook', async (req, res) => {
+router.all('/webhook', async (req, res) => {
     let event
 
     console.log('reached webhook endpoint')

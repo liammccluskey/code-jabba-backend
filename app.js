@@ -14,7 +14,7 @@ app.use(express.json())
 app.set('query parser', str => qs.parse(str))
 
 app.use((req, res, next) => {
-    if (process.env.PROFILE_ENV === 'DEV') console.log(req.originalUrl)
+    if (process.env.PROFILE_ENV === 'DEV') console.log(req.method + ': ' + req.originalUrl)
     next()
 })
 
