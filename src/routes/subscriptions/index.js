@@ -78,14 +78,14 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
 
             case 'invoice.payment_succeeded': {
                 const invoice = event.data.object
-                const subscriptionID = invoice.subscription
+                const customerID = invoice.customer
 
                 console.log(JSON.stringify(
-                    {subscriptionID: subscriptionID || 'no subscription id'}
+                    {customerID: customerID || 'no customer id'}
                 , null, 4))
 
                 const subscription = await Subscription.findOneAndUpdate(
-                    { stripeSubscriptionID: subscriptionID },
+                    { stripeCustomerID: customerID },
                     { status: 'active' }
                 ).select('userID tier')
                 .lean()
@@ -120,10 +120,10 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
 
             case 'invoice.payment_failed': {
                 const invoice = event.data.object
-                const subscriptionID = invoice.subscription
+                const customerID = invoice.customer
 
                 const subscription = await Subscription.findOneAndUpdate(
-                    { stripeSubscriptionID: subscriptionID },
+                    { stripeCustomerID: customerID },
                     { status: 'past_due' }
                 ).select('userID')
                 .lean()
@@ -154,6 +154,10 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
             case 'customer.subscription.deleted': {
                 const subscription = event.data.object
                 const {userID} = subscription.metadata
+
+                console.log(JSON.stringify(
+                    {metadata: subscription.metadata || 'no metadata'}
+                , null, 4))
 
                 console.log(JSON.stringify(
                     {userID: userID || 'no userID'}
