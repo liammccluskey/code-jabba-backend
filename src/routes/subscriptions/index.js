@@ -15,8 +15,6 @@ const stripe = require('stripe')(STRIPE_SECRET_KEY)
 router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
     let event
 
-    console.log('reached webhook endpoint')
-
     try {
         const signature = req.headers['stripe-signature']
         event = stripe.webhooks.constructEvent(
@@ -30,7 +28,6 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
     }
 
     try {
-        console.log('constructed event')
         console.log('event type: ' + event.type)
         switch (event.type) {
             case 'checkout.session.completed': {
@@ -38,10 +35,6 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                 const stripeSubscriptionID = session.subscription
                 const stripeCustomerID = session.customer
                 const {userID, tier} = session.metadata
-
-                console.log(JSON.stringify(
-                    {stripeSubscriptionID, stripeCustomerID, userID, tier}
-                , null, 4))
 
                 await Subscription.updateOne({user: userID}, {
                     user: userID,
@@ -87,15 +80,15 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                 const invoice = event.data.object
                 const subscriptionID = invoice.subscription
 
+                console.log(JSON.stringify(
+                    {subscriptionID: subscriptionID || 'no subscription id'}
+                , null, 4))
+
                 const subscription = await Subscription.findOneAndUpdate(
                     { stripeSubscriptionID: subscriptionID },
                     { status: 'active' }
                 ).select('userID tier')
                 .lean()
-
-                console.log(JSON.stringify(
-                    {subscription: subscription || 'no subscription'}
-                , null, 4))
 
                 if (!subscription) {
                     const errorMessage = 'Could not find a subscription matching the given subscriptionID.'
