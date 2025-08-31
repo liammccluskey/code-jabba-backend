@@ -44,6 +44,8 @@ router.patch('/cancel-subscription', async (req, res) => {
 router.post('/create-checkout-session', async (req, res) => {
     const {userID, subscriptionTier} = req.body
 
+    console.log('reached create checkout session endpoint')
+
     const subscriptionPriceID = SUBSCRIPTION_PRICE_IDS[subscriptionTier]
 
     if (!subscriptionPriceID) {
@@ -97,6 +99,8 @@ router.post('/create-checkout-session', async (req, res) => {
 
 router.post('/webhook', async (req, res) => {
     let event
+
+    console.log('reached webhook endpoint')
 
     try {
         const signature = req.headers['stripe-signature']
