@@ -44,6 +44,10 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                     status: 'active'
                 }, {upsert: true})
 
+                await stripe.subscriptions.update(stripeSubscriptionID, {
+                    metadata: session.metadata
+                })
+
                 break
             }
 
@@ -80,14 +84,10 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                 const invoice = event.data.object
                 const customerID = invoice.customer
 
-                console.log(JSON.stringify(
-                    {customerID: customerID || 'no customer id'}
-                , null, 4))
-
                 const subscription = await Subscription.findOneAndUpdate(
                     { stripeCustomerID: customerID },
                     { status: 'active' }
-                ).select('userID tier')
+                ).select('user tier')
                 .lean()
 
                 if (!subscription) {
@@ -97,7 +97,7 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                 }
 
                 try {
-                    const {userID, tier} = subscription
+                    const {user: userID, tier} = subscription
     
                     if (invoice.billing_reason === 'subscription_create') {
                         switch (tier) {
@@ -125,7 +125,7 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                 const subscription = await Subscription.findOneAndUpdate(
                     { stripeCustomerID: customerID },
                     { status: 'past_due' }
-                ).select('userID')
+                ).select('user')
                 .lean()
 
                 if (!subscription) {
