@@ -50,7 +50,7 @@ router.post('/create-checkout-session', async (req, res) => {
         res.status(400).json({message: 'Received an invalid subscription tier.'})
     }
 
-    let stripeCustomerID = undefined
+    let stripeCustomerID = null
     try {
         const subscription = await Subscription.findOne({user: userID})
             .lean()
@@ -77,7 +77,7 @@ router.post('/create-checkout-session', async (req, res) => {
                 quantity: 1,
               },
             ],
-            customer: stripeCustomerID,
+            customer: stripeCustomerID || undefined,
             metadata: {
                 tier: subscriptionTier,
                 userID,
@@ -90,7 +90,7 @@ router.post('/create-checkout-session', async (req, res) => {
         
           res.json({sessionURL: session.url})
     } catch (error) {
-        console.log(error)
+        console.log(error.message)
         res.status(500).json({message: error.message})
     }
 })
