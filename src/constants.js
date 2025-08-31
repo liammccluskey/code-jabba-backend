@@ -21,7 +21,7 @@ const STRIPE_SECRET_KEY = {
 
 const CODE_JABBA_DOMAIN = {
     DEV: process.env.DOMAIN_DEV,
-    PROD: process.env.DOMAIN_DEV,
+    PROD: process.env.DOMAIN_PROD,
 }[process.env.PROFILE_ENV]
 
 module.exports = {

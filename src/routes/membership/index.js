@@ -111,12 +111,18 @@ router.post('/webhook', async (req, res) => {
     }
 
     try {
+        console.log('constructed event')
+        console.log('event type: ' + event.type)
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object
                 const stripeSubscriptionID = session.subscription
                 const stripeCustomerID = session.customer
                 const {userID, tier} = session.metadata
+
+                console.log(JSON.stringify(
+                    {stripeSubscriptionID, stripeCustomerID, userID, tier}
+                , null, 4))
 
                 await Subscription.updateOne({user: userID}, {
                     user: userID,
@@ -167,6 +173,10 @@ router.post('/webhook', async (req, res) => {
                     { status: 'active' }
                 ).select('userID tier')
                 .lean()
+
+                console.log(JSON.stringify(
+                    {subscription: subscription || 'no subscription'}
+                , null, 4))
 
                 if (!subscription) {
                     const errorMessage = 'Could not find a subscription matching the given subscriptionID.'
