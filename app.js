@@ -10,11 +10,19 @@ const {hasAdminPrivileges} = require('./src/routes/admin/utils')
 // Middleware
 
 app.use(cors())
-app.use(express.json())
+app.use((req, res, next) => {
+    if (req.originalUrl === '/membership/webhook') {
+        next()
+    } else {
+        express.json()(req, res, next)
+    }
+})
 app.set('query parser', str => qs.parse(str))
 
 app.use((req, res, next) => {
-    if (process.env.PROFILE_ENV === 'DEV') console.log(req.method + ': ' + req.originalUrl)
+    if (process.env.PROFILE_ENV === 'DEV') {
+        console.log(req.method + ': ' + req.originalUrl)
+    }
     next()
 })
 
