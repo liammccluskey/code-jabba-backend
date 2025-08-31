@@ -4,8 +4,16 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 require('dotenv/config')
 const qs = require('qs')
+const bodyParser = require('body-parser')
 
 const {hasAdminPrivileges} = require('./src/routes/admin/utils')
+
+// test
+
+app.post('/membership/webhook', bodyParser.raw({ type: 'application/json' }), (req, res) => {
+    console.log('Webhook endpoint reached : pre middleware')
+    res.sendStatus(200)
+})
 
 // Middleware
 
