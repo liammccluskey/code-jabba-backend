@@ -145,7 +145,7 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                                 break
                         }
                 } catch (error) {
-                    console.log('Failed to send subscription cancellation email/app update.')
+                    console.log('Failed to send payment failed email/app update.')
                 }
 
                 break
@@ -154,6 +154,10 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
             case 'customer.subscription.deleted': {
                 const subscription = event.data.object
                 const {userID} = subscription.metadata
+
+                console.log(JSON.stringify(
+                    {userID: userID || 'no userID'}
+                , null, 4))
 
                 await Subscription.findOneAndUpdate(
                     { user: userID },
@@ -172,7 +176,7 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                             break
                     }
                 } catch (error) {
-                    console.log('Failed to send subscription cancellatino email/app update.')
+                    console.log('Failed to send subscription cancellation email/app update.')
                 }
 
                 break
