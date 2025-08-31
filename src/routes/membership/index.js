@@ -90,7 +90,7 @@ router.post('/create-checkout-session', async (req, res) => {
         
           res.json({sessionURL: session.url})
     } catch (error) {
-        console.log(error.message)
+        console.log(error)
         res.status(500).json({message: error.message})
     }
 })
