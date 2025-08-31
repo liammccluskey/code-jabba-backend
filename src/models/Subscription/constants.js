@@ -8,12 +8,12 @@ const SUBSCRIPTION_TIERS = {
 
 const SUBSCRIPTION_PRICE_IDS = {
     DEV: {
-        recruiterPremium: 'price_1OFj2BCRacSb9b39jKojuIoO',
-        candidatePremium: 'price_1OFj1hCRacSb9b39FRbGQKAn',
+        recruiterPremium: 'price_1S2BgEJYyxSlwqx9CyYPH0LB',
+        candidatePremium: 'price_1S2BbVJYyxSlwqx9XpFSdSi9',
     },
     PROD: {
-        recruiterPremium: 'price_1OFj0OCRacSb9b39fbeXGZcS',
-        candidatePremium: 'price_1OFizwCRacSb9b39DLmHVuDm',
+        recruiterPremium: '',
+        candidatePremium: '',
     }
 }[process.env.PROFILE_ENV]
 

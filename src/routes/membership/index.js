@@ -23,7 +23,13 @@ router.patch('/cancel-subscription', async (req, res) => {
         if (subscription) {
             await stripe.subscriptions.del(subscription.stripeSubscriptionID, {at_period_end: true})
 
-            res.json({message: 'Successfully cancelled your subscription. Your premium plan benefits will remain active until the end of the billing cycle.'})
+            res.json({message: 'Successfully cancelled your subscription. You should receive an email shortly confirming your subscription cancellation.'})
+        
+            if (subscription.tier === SUBSCRIPTION_TIERS.candidatePremium) {
+                await sendNotificationIfEnabled(NOTIFICATIONS.candidatePremiumCancellationInitiated, userID, true, true)
+            } else if (subscription.tier === SUBSCRIPTION_TIERS.recruiterPremium) {
+                await sendNotificationIfEnabled(NOTIFICATIONS.recruiterPremiumCancellationInitiated, userID, true, true)
+            }
         } else {
             res.status(404).json({message: 'Could not find an active subscription for this user.'})
         }

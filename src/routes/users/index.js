@@ -55,9 +55,19 @@ router.get('/uid/:uid', async (req, res) => {
         const user = await User.findOne({uid})
             .lean()
 
-        if (user)
+        const subscriptionFilter = {
+            user: user._id,
+            status: 'active'
+        }
+
+        if (user) {
+            const subscription = await Subscription.findOne(subscriptionFilter)
+                .lean()
+
+            if (subscription) user.subscription = subscription
+
             res.json(formatUser(user))
-        else
+        } else
             res.status(404).json({message: 'Could not find a user with the given uid.'})
     } catch (error) {
         console.log(error)
