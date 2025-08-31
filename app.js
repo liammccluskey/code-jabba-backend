@@ -8,23 +8,15 @@ const bodyParser = require('body-parser')
 
 const {hasAdminPrivileges} = require('./src/routes/admin/utils')
 
-// test
+// Stripe Webhook route
 
-app.post('/membership/webhook', bodyParser.raw({ type: 'application/json' }), (req, res) => {
-    console.log('Webhook endpoint reached : pre middleware')
-    res.sendStatus(200)
-})
+const subscriptionsRoute = require('./src/routes/subscriptions')
+app.use('/subscriptions', subscriptionsRoute)
 
 // Middleware
 
 app.use(cors())
-app.use((req, res, next) => {
-    if (req.originalUrl === '/membership/webhook') {
-        next()
-    } else {
-        express.json()(req, res, next)
-    }
-})
+app.use(express.json())
 app.set('query parser', str => qs.parse(str))
 
 app.use((req, res, next) => {
