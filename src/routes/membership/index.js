@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const bodyParser = require('body-parser')
 
 const {SUBSCRIPTION_TIERS, SUBSCRIPTION_PRICE_IDS} = require('../../models/Subscription/constants')
 const Subscription = require('../../models/Subscription')
