@@ -22,7 +22,7 @@ router.patch('/cancel-subscription', async (req, res) => {
         if (subscription) {
             const {stripeSubscriptionID, tier} = subscription
 
-            await stripe.subscriptions.update(stripeSubscriptionID, {at_period_end: true})
+            await stripe.subscriptions.update(stripeSubscriptionID, {cancel_at_period_end: true})
 
             res.json({message: 'Successfully cancelled your subscription. You should receive an email shortly confirming your subscription cancellation.'})
         
