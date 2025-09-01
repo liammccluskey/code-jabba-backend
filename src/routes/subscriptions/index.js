@@ -153,15 +153,7 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
 
             case 'customer.subscription.deleted': {
                 const subscription = event.data.object
-                const {userID} = subscription.metadata
-
-                console.log(JSON.stringify(
-                    {metadata: subscription.metadata || 'no metadata'}
-                , null, 4))
-
-                console.log(JSON.stringify(
-                    {userID: userID || 'no userID'}
-                , null, 4))
+                const {userID, tier} = subscription.metadata
 
                 await Subscription.findOneAndUpdate(
                     { user: userID },
