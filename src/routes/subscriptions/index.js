@@ -122,20 +122,24 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
                 const invoice = event.data.object
                 const customerID = invoice.customer
 
+                console.log(JSON.stringify(
+                    {invoice}
+                , null, 4))
+
                 const subscription = await Subscription.findOneAndUpdate(
                     { stripeCustomerID: customerID },
                     { status: 'past_due' }
-                ).select('user')
+                ).select('user tier')
                 .lean()
 
                 if (!subscription) {
-                    const errorMessage = 'Could not find a subscription matching the given subscriptionID.'
+                    const errorMessage = 'Could not find a subscription matching the given customerID.'
                     console.log(errorMessage)
                     throw Error(errorMessage)
                 }
 
                 try {
-                    const {userID, tier} = subscription
+                    const {user: userID, tier} = subscription
                         switch (tier) {
                             case SUBSCRIPTION_TIERS.recruiterPremium:
                                 await sendNotificationIfEnabled(NOTIFICATIONS.recruiterPremiumPaymentFailed, userID, true, true)
