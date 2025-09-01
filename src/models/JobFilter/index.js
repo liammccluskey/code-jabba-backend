@@ -13,44 +13,48 @@ const JobFilterSchema = mongoose.Schema({
     },
     settings: {
         type: [String], // [ on-site | hybrid | remote ]
-        required: false,
+        required: true,
     },
     locations: {
         type: [String],
-        required: false,
+        required: true,
     },
     employmentTypes: {
         type: [String], // [ internship | part-time | contract | full-time ]
-        required: false,
+        required: true,
     },
     positions: {
         type: [String], // frontend | backend | full-stack | embedded | qa | test
-        required: false,
+        required: true,
     },
     experienceLevels: {
         type: [String], // [entry | mid | senior | staff | principal]
-        required: false
+        required: true
     },
     experienceYears: {
         type: [String], // [0, 1-2, 3-4, 5-6, 7-8, 9-10, 11+]
-        required: false,
+        required: true,
     },
     includedSkills: {
         type: [String],
-        required: false
+        required: true
     },
     excludedSkills: {
         type: [String],
-        required: false
+        required: true
     },
     includedLanguages: {
         type: [String],
-        required: false
+        required: true
     },
     excludedLanguages: {
         type: [String],
-        required: false
+        required: true
     },
+    salaryMin: {
+        type: Number,
+        required: true
+    }
 }, {timestamps: true})
 
 module.exports = mongoose.model('JobFilter', JobFilterSchema)

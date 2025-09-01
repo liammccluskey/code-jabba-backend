@@ -32,16 +32,18 @@ const generateMongoFilterFromJobFilters = ({
     excludedSkills, // [string]
     includedLanguages, // [string]
     excludedLanguages, // [string]
+    salaryMin, // string
     companyID, // string
 }) => {
+    const settingsWithoutRemote = settings.filter(setting => setting !== 'remote')
     const filter = {
         $and: [
             employmentTypes.length ? { employmentType: { $in: employmentTypes } } : {},
-            settings.includes('remote') ? { 
+            settings.includes('remote') || !settings.length ? { 
                 $or: [
                     {setting: 'remote'},
                     { $and: [
-                        settings.length ? { setting: { $in: settings.filter(setting => setting !== 'remote') }} : {},
+                        settingsWithoutRemote.length ? { setting: { $in: settingsWithoutRemote }} : {},
                         locations.length ? { location: { $in: locations }} : {}
                     ]}
                 ]} : { 
@@ -56,6 +58,8 @@ const generateMongoFilterFromJobFilters = ({
             excludedLanguages.length ? { languages: { $nin: excludedLanguages } } : {},
             includedSkills.length ? { skills: { $in: includedSkills } } : {},
             excludedSkills.length ? { skills: { $nin: excludedSkills } } : {},
+            [0, '0'].includes(salaryMin) ? {} : {salaryType: { $nin: 'not-provided' }},
+            [0, '0'].includes(salaryMin) ? {} : {estimatedSalaryMax: { $gte: Number(salaryMin)} },
             companyID ? {company: companyID} : {},
         ]
     }

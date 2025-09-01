@@ -14,7 +14,8 @@ router.get('/users/:userID', async (req, res) => {
 
     const subscriptionFilter = {
         user: userID,
-        tier: SUBSCRIPTION_TIERS.candidatePremium
+        tier: SUBSCRIPTION_TIERS.candidatePremium,
+        status: 'active'
     }
 
     try {
