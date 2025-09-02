@@ -1,30 +1,37 @@
 const moment = require('moment')
 
-function removeEmptyObjects(obj) {
-    if (Array.isArray(obj)) {
+const removeEmptyObjects = obj => {
+  if (Array.isArray(obj)) {
       return obj
-        .map(removeEmptyObjects)
-        .filter(item => !(typeof item === 'object' && item !== null && Object.keys(item).length === 0));
-    }
-  
-    if (typeof obj === 'object' && obj !== null) {
-      const cleaned = {};
-      for (const [key, value] of Object.entries(obj)) {
-        const cleanedValue = removeEmptyObjects(value);
-        if (
-          !(typeof cleanedValue === 'object' && cleanedValue !== null && Object.keys(cleanedValue).length === 0)
-        ) {
-          cleaned[key] = cleanedValue;
-        }
-      }
-      return cleaned;
-    }
-  
-    return obj;
+          .map(removeEmptyObjects)
+          .filter(item => {
+              if (Array.isArray(item)) return item.length > 0
+              if (typeof item === 'object' && item !== null) return Object.keys(item).length > 0
+              return true
+          })
   }
 
+  if (typeof obj === 'object' && obj !== null) {
+      if (obj.postedAt) return obj // can't get this function to work without this line
+      const cleaned = {}
+      for (const [key, value] of Object.entries(obj)) {
+          const cleanedValue = removeEmptyObjects(value)
+
+          const isEmptyObject = typeof cleanedValue === 'object' && cleanedValue !== null && !Array.isArray(cleanedValue) && Object.keys(cleanedValue).length === 0
+          const isEmptyArray = Array.isArray(cleanedValue) && cleanedValue.length === 0
+
+          if (!isEmptyObject && !isEmptyArray) {
+              cleaned[key] = cleanedValue
+          }
+      }
+      return cleaned
+  }
+
+  return obj
+}
+
 const generateMongoFilterFromJobFilters = ({
-    datePosted, // '' | past-day | past-week | past-month
+    datePosted, // anytime | past-day | past-week | past-month
     employmentTypes, // [internship | part-time | contract | full-time]
     settings, // [on-site | hybrid | remote]
     positions, // [frontend | backend | full-stack | embedded | qa | test]
@@ -43,15 +50,12 @@ const generateMongoFilterFromJobFilters = ({
       ['past-day']: {postedAt: { $gte: moment().subtract(24, 'hours').toDate() }},
       ['past-week']: {postedAt: { $gte: moment().subtract(7, 'day').toDate() }},
       ['past-month']: {postedAt: { $gte: moment().subtract(1, 'month').toDate() }},
+      anytime: {},
     }[datePosted]
-
-    console.log(JSON.stringify(
-      {datePostedFilter, presence: !!datePostedFilter}
-    , null, 4))
 
     const filter = {
         $and: [
-            datePostedFilter ? datePostedFilter : {},
+            datePostedFilter,
             employmentTypes.length ? { employmentType: { $in: employmentTypes } } : {},
             settings.includes('remote') || (!settings.length && locations.length) ? { 
                 $or: [
@@ -78,7 +82,9 @@ const generateMongoFilterFromJobFilters = ({
         ]
     }
 
-    return removeEmptyObjects(filter)
+    const cleanedFilter = removeEmptyObjects(filter)
+
+    return cleanedFilter
 }
 module.exports = {
     generateMongoFilterFromJobFilters

@@ -11,6 +11,10 @@ const JobFilterSchema = mongoose.Schema({
         ref: 'User',
         required: true
     },
+    datePosted: {
+        type: String,
+        required: true
+    },
     settings: {
         type: [String], // [ on-site | hybrid | remote ]
         required: true,

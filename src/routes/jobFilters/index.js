@@ -43,6 +43,10 @@ router.get('/users/:userID', async (req, res) => {
             asMongoFilter: generateMongoFilterFromJobFilters(filter)
         }))
 
+        updatedJobFilters.forEach(filter => console.log(filter.title))
+
+
+
         res.json(updatedJobFilters)
     } catch (error) {
         console.log(error)
@@ -56,11 +60,14 @@ router.post('/', async (req, res) => {
     const {userID, title, filters} = req.body
 
     delete filters._id
+    delete filters.title
+    delete filters.createdAt
+    delete filters.updatedAt
 
     const jobFilter = JobFilter({
         user: userID,
         title,
-        ...filters
+        ...filters,
     })
 
     try {

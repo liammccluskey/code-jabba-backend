@@ -66,7 +66,7 @@ router.get('/candidate-search', async (req, res) => {
         pagesize = PAGE_SIZES.jobSearch,
         page,
         sortBy,
-        datePosted='',
+        datePosted='anytime', // anytime | past-day | past-week | past-month
         employmentTypes=[], // internship | part-time | contract | full-time
         settings=[], // on-site | hybrid | remote
         positions=[], // frontend | backend | full-stack | embedded | qa | test
@@ -102,10 +102,6 @@ router.get('/candidate-search', async (req, res) => {
         archived: false,
         ...mongoFilterFromJobFilters
     }
-
-    console.log(JSON.stringify(
-        {filter, datePosted}
-    , null, 4))
 
     try {
         const count = await Job.countDocuments(filter)
