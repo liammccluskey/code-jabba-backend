@@ -1,3 +1,5 @@
+const moment = require('moment')
+
 function removeEmptyObjects(obj) {
     if (Array.isArray(obj)) {
       return obj
@@ -22,6 +24,7 @@ function removeEmptyObjects(obj) {
   }
 
 const generateMongoFilterFromJobFilters = ({
+    datePosted, // '' | past-day | past-week | past-month
     employmentTypes, // [internship | part-time | contract | full-time]
     settings, // [on-site | hybrid | remote]
     positions, // [frontend | backend | full-stack | embedded | qa | test]
@@ -36,10 +39,21 @@ const generateMongoFilterFromJobFilters = ({
     companyID, // string
 }) => {
     const settingsWithoutRemote = settings.filter(setting => setting !== 'remote')
+    const datePostedFilter = {
+      ['past-day']: {postedAt: { $gte: moment().subtract(24, 'hours').toDate() }},
+      ['past-week']: {postedAt: { $gte: moment().subtract(7, 'day').toDate() }},
+      ['past-month']: {postedAt: { $gte: moment().subtract(1, 'month').toDate() }},
+    }[datePosted]
+
+    console.log(JSON.stringify(
+      {datePostedFilter, presence: !!datePostedFilter}
+    , null, 4))
+
     const filter = {
         $and: [
+            datePostedFilter ? datePostedFilter : {},
             employmentTypes.length ? { employmentType: { $in: employmentTypes } } : {},
-            settings.includes('remote') || !settings.length ? { 
+            settings.includes('remote') || (!settings.length && locations.length) ? { 
                 $or: [
                     {setting: 'remote'},
                     { $and: [

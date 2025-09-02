@@ -66,6 +66,7 @@ router.get('/candidate-search', async (req, res) => {
         pagesize = PAGE_SIZES.jobSearch,
         page,
         sortBy,
+        datePosted='',
         employmentTypes=[], // internship | part-time | contract | full-time
         settings=[], // on-site | hybrid | remote
         positions=[], // frontend | backend | full-stack | embedded | qa | test
@@ -82,6 +83,7 @@ router.get('/candidate-search', async (req, res) => {
     const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
 
     const mongoFilterFromJobFilters = generateMongoFilterFromJobFilters({
+        datePosted,
         employmentTypes,
         settings,
         positions,
@@ -100,6 +102,10 @@ router.get('/candidate-search', async (req, res) => {
         archived: false,
         ...mongoFilterFromJobFilters
     }
+
+    console.log(JSON.stringify(
+        {filter, datePosted}
+    , null, 4))
 
     try {
         const count = await Job.countDocuments(filter)
@@ -158,14 +164,14 @@ router.get('/:jobID', async (req, res) => {
 router.post('/', async (req, res) => {
     const {userID, job} = req.body
 
-    const subscriptionFilter = {user: userID, status: 'active'}
+    const subscriptionFilter = {user: userID, status: 'active', tier: SUBSCRIPTION_TIERS.recruiterPremium}
     const jobsFilter = {recruiter: userID, archived: false}
 
     try {
-        const subscriptionsCount = Subscription.countDocuments(subscriptionsFilter)
+        const subscriptionsCount = Subscription.countDocuments(subscriptionFilter)
         const activeJobsCount = Job.countDocuments(jobsFilter)
 
-        if (subscriptionsCount == 0 && activeJobsCount >= 1 && process.env.PROFILE_ENV === 'PROD') {
+        if (subscriptionsCount == 0 && activeJobsCount >= 1) {
             res.status(403).json({message: 'You must sign up for Recruiter Premium to have more than one active job post at a time.'})
         }
     } catch (error) {
