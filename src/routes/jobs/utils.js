@@ -43,9 +43,12 @@ const generateMongoFilterFromJobFilters = ({
     includedLanguages, // [string]
     excludedLanguages, // [string]
     salaryMin, // string
+    sponsorsVisa, // [ visa-yes | visa-no | visa-possibly ]
+    requiresClearance, // any | clearance-required | clearance-not-required
     companyID, // string
 }) => {
     const settingsWithoutRemote = settings.filter(setting => setting !== 'remote')
+
     const datePostedFilter = {
       ['past-day']: {postedAt: { $gte: moment().subtract(24, 'hours').toDate() }},
       ['past-week']: {postedAt: { $gte: moment().subtract(7, 'day').toDate() }},
@@ -53,9 +56,16 @@ const generateMongoFilterFromJobFilters = ({
       anytime: {},
     }[datePosted]
 
+    const requiresClearanceFilter = {
+      ['clearance-required']: {requiresClearance: true},
+      ['clearance-not-required']: {requiresClearance: false},
+      any: {},
+    }[requiresClearance]
+
     const filter = {
         $and: [
             datePostedFilter,
+            requiresClearanceFilter,
             employmentTypes.length ? { employmentType: { $in: employmentTypes } } : {},
             settings.includes('remote') || (!settings.length && locations.length) ? { 
                 $or: [
@@ -78,6 +88,7 @@ const generateMongoFilterFromJobFilters = ({
             excludedSkills.length ? { skills: { $nin: excludedSkills } } : {},
             [0, '0'].includes(salaryMin) ? {} : {salaryType: { $nin: 'not-provided' }},
             [0, '0'].includes(salaryMin) ? {} : {estimatedSalaryMax: { $gte: Number(salaryMin)} },
+            sponsorsVisa.length ? { sponsorsVisa: { $in: sponsorsVisa }} : {},
             companyID ? {company: companyID} : {},
         ]
     }

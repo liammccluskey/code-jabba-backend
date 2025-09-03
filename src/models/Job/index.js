@@ -142,6 +142,11 @@ const JobSchema = mongoose.Schema({
         required: false,
         default: false
     },
+    countryCode: {
+        type: String,
+        required: false,
+        default: 'us'
+    }
 
 }, {timestamps: true})
 

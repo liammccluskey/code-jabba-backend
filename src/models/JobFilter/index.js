@@ -58,7 +58,15 @@ const JobFilterSchema = mongoose.Schema({
     salaryMin: {
         type: Number,
         required: true
-    }
+    },
+    sponsorsVisa: {
+        type: [String],
+        required: true
+    },
+    requiresClearance: {
+        type: String,
+        required: true
+    },
 }, {timestamps: true})
 
 module.exports = mongoose.model('JobFilter', JobFilterSchema)

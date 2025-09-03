@@ -78,6 +78,8 @@ router.get('/candidate-search', async (req, res) => {
         includedLanguages=[], // [string]
         excludedLanguages=[], // [string]
         salaryMin='0', // string
+        sponsorsVisa=[], // [ visa-yes | visa-no | visa-possibly ]
+        requiresClearance='any', // any | clearance-required | clearance-not-required
         companyID=null, // string
     } = req.query
     const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
@@ -95,6 +97,8 @@ router.get('/candidate-search', async (req, res) => {
         includedLanguages,
         excludedLanguages,
         salaryMin,
+        sponsorsVisa,
+        requiresClearance,
         companyID,
     })
 
