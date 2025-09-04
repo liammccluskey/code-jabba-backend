@@ -13,7 +13,38 @@ const {transformCompany} = require('../../models/Company/utils')
 const Subscription = require('../../models/Subscription')
 const {SUBSCRIPTION_TIERS} = require('../../models/Subscription/constants')
 
+// Utils
+
+// returns : {canPostJobs: boolean, message: string}
+const getRecruiterCanPostsJobs = async (userID) => { // throws http error if can't post jobs
+    const subscriptionFilter = {user: userID, status: 'active', tier: SUBSCRIPTION_TIERS.recruiterPremium}
+    const jobsFilter = {recruiter: userID, archived: false}
+
+    try {
+        const subscriptionsCount = await Subscription.countDocuments(subscriptionFilter)
+        const activeJobsCount = await Job.countDocuments(jobsFilter)
+
+        if (subscriptionsCount == 0 && activeJobsCount >= 1) return false
+        else return true
+    } catch (error) {
+        throw error
+    }
+}
+
 // GET Routes
+
+router.get('/recruiter-can-post-jobs/:userID', async (req, res) => {
+    const {userID} = req.params
+
+    try {
+        const recruiterCanPostJobs = await getRecruiterCanPostsJobs(userID)
+
+        res.json(recruiterCanPostJobs)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: 'Failed to verify ability to post jobs, please try again later.'})
+    }
+})
 
 router.get('/recruiter-search', async (req, res) => {
     const {
@@ -164,19 +195,16 @@ router.get('/:jobID', async (req, res) => {
 router.post('/', async (req, res) => {
     const {userID, job} = req.body
 
-    const subscriptionFilter = {user: userID, status: 'active', tier: SUBSCRIPTION_TIERS.recruiterPremium}
-    const jobsFilter = {recruiter: userID, archived: false}
-
     try {
-        const subscriptionsCount = Subscription.countDocuments(subscriptionFilter)
-        const activeJobsCount = Job.countDocuments(jobsFilter)
+        const recruiterCanPostJobs = await getRecruiterCanPostsJobs(userID)
 
-        if (subscriptionsCount == 0 && activeJobsCount >= 1) {
+        if (!recruiterCanPostJobs) {
             res.status(403).json({message: 'You must sign up for Recruiter Premium to have more than one active job post at a time.'})
+            return
         }
     } catch (error) {
-        console.log('Failed to find subscriptions or active jobs')
-        res.status(500).json({message: 'Failed to verify ability to post job.'})
+        console.log(error)
+        res.status(500).json({message: 'Failed to verify ability to post jobs, please try again later.'})
     }
 
     const updatedJob = new Job(transformJob(job, userID, true))
@@ -326,6 +354,7 @@ router.patch('/job-archive-service', async (req, res) => {
     const jobFilter = {
         postedAt: { $lte: moment().subtract(1, 'month').toDate()},
         archive: true,
+        archived: false
     }
 
     try {
