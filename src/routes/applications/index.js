@@ -10,6 +10,8 @@ const {logEvent} = require('../events/utils')
 const {HiddenUserKeysSelectStatement} = require('../../models/User/constants')
 const {NOTIFICATIONS} = require('./notifications')
 const {sendNotificationIfEnabled} = require('../../utils/notifications')
+const { getUserHasRecruiterPremium } = require('../membership/utils')
+const { FREE_TIER_MAX_APPLICATIONS_PER_JOB } = require('../jobs/constants')
 
 // GET Routes
 
@@ -290,6 +292,23 @@ router.post('/', async (req, res) => {
     } catch (error) {
         res.status(500).json({message: error.message})
     }
+
+    const {job: jobID, recruiter: recruiterID} = application
+
+    try {
+        const applicationsCount = await Application.countDocuments({job: jobID})
+
+        const userHasRecruiterPremium = await getUserHasRecruiterPremium(recruiterID)
+
+        if (!userHasRecruiterPremium && applicationsCount >= FREE_TIER_MAX_APPLICATIONS_PER_JOB) {
+            const job = await Job.findOneAndUpdate({_id: jobID}, {archived: true})
+                .select('title')
+
+            await sendNotificationIfEnabled(NOTIFICATIONS.jobReachedApplicationLimit(job.title), recruiterID, true, true)
+        }
+    } catch (error) {
+        console.log(error)
+    }
 })
 
 // PATCH Routes
@@ -349,12 +368,15 @@ router.patch('/:applicationID', async (req, res) => {
         if (updatedApplication) {
             res.status(200).json({message: 'Successfully updated application status.'})
 
-            const notification = status === 'accepted' ? 
-                NOTIFICATIONS.applicationAccepted(updatedApplication)
-                : NOTIFICATIONS.applicationRejected(updatedApplication)
+            let notification = null
+            if (status === 'accepted') {
+                notification = NOTIFICATIONS.applicationAccepted(updatedApplication)
+            } else if (status === 'rejected') {
+                notification = NOTIFICATIONS.applicationRejected(updatedApplication)
+            }
 
             try {
-                sendNotificationIfEnabled(notification, updatedApplication.candidate, true, true)
+                if (notification) sendNotificationIfEnabled(notification, updatedApplication.candidate, true, true)
             } catch (error) {
                 console.log(error)
             }
@@ -362,6 +384,7 @@ router.patch('/:applicationID', async (req, res) => {
             res.status(404).json({message: 'No applications matched those filters.'})
         }
     } catch (error) {
+        console.log(error)
         res.status(500).json({message: error.message})
     }
 })

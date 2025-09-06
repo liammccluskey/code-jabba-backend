@@ -26,6 +26,11 @@ const SubscriptionSchema = mongoose.Schema({
         type: String, // active | incomplete | trialing | past_due | canceled | unpaid
         required: false,
         default: 'active'
+    },
+    users: {
+        type: [String],
+        required: false,
+        default: []
     }
 }, {timestamps: true})
 

@@ -10,21 +10,20 @@ const {transformJob} = require('../../models/Job/utils')
 const {generateMongoFilterFromJobFilters} = require('./utils')
 const Company = require('../../models/Company')
 const {transformCompany} = require('../../models/Company/utils')
-const Subscription = require('../../models/Subscription')
-const {SUBSCRIPTION_TIERS} = require('../../models/Subscription/constants')
+const {FREE_TIER_MAX_ACTIVE_JOB_COUNT, FREE_TIER_MAX_APPLICATIONS_PER_JOB} = require('./constants')
+const {getUserHasRecruiterPremium} = require('../../routes/membership/utils')
 
 // Utils
 
-// returns : {canPostJobs: boolean, message: string}
 const getRecruiterCanPostsJobs = async (userID) => { // throws http error if can't post jobs
-    const subscriptionFilter = {user: userID, status: 'active', tier: SUBSCRIPTION_TIERS.recruiterPremium}
     const jobsFilter = {recruiter: userID, archived: false}
 
     try {
-        const subscriptionsCount = await Subscription.countDocuments(subscriptionFilter)
         const activeJobsCount = await Job.countDocuments(jobsFilter)
 
-        if (subscriptionsCount == 0 && activeJobsCount >= 1) return false
+        const userHasRecruiterPremium = await getUserHasRecruiterPremium(userID)
+
+        if (!userHasRecruiterPremium && activeJobsCount >= FREE_TIER_MAX_ACTIVE_JOB_COUNT) return false
         else return true
     } catch (error) {
         throw error
@@ -323,6 +322,33 @@ router.post('/job-post-service', async (req, res) => {
 router.patch('/repost/:jobID', async (req, res) => {
     const {jobID} = req.params
     const {userID} = req.body
+
+    try {
+        const recruiterCanPostJobs = await getRecruiterCanPostsJobs(userID)
+
+        if (!recruiterCanPostJobs) {
+            res.status(403).json({message: 'You have reached your limit for active job posts on the free tier.'})
+            return
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: 'Failed to verify ability to repost job.'})
+    }
+
+    try {
+        const applicationFilter = {job: jobID}
+
+        const applicationsCount = await Application.countDocuments(applicationFilter)
+
+        if (applicationsCount >= FREE_TIER_MAX_APPLICATIONS_PER_JOB) {
+            res.status(403).json({message: 'This job has reached the limit for applications on the free tier'})
+            return
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message: 'Failed to verify ability to repost job.'})
+    }
+
 
     const updatedFields = {
         postedAt: moment().toISOString(),

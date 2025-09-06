@@ -23,6 +23,12 @@ const NOTIFICATIONS = {
         message: getUpdatedApplicationStatusMessage(application, false),
         includeMessageWrapper: false
     }),
+    jobReachedApplicationLimit: jobTitle => ({
+        channelID: CHANNEL_IDS.jobUpdates,
+        subject: `${jobTitle} was Archived`,
+        message: `Your job post for ${jobTitle} has been archived as it has reached the application limit on the free tier. Upgrade to Recruiter Premium if you wish to receive unlimited applications.`,
+        includeMessageWrapper: true
+    })
 }
 
 module.exports = {
