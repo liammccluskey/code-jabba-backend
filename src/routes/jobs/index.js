@@ -15,7 +15,7 @@ const {getUserHasRecruiterPremium} = require('../../routes/membership/utils')
 
 // Utils
 
-const getRecruiterCanPostsJobs = async (userID) => { // throws http error if can't post jobs
+const getRecruiterCanPostsJobs = async (userID) => {
     const jobsFilter = {recruiter: userID, archived: false}
 
     try {
@@ -366,7 +366,7 @@ router.patch('/repost/:jobID', async (req, res) => {
             res.status(403).json({message: 'You do not have access to make edits on this job.'})
             return
         }
-        await Job.updateOne({_id: jobID, updatedFields})
+        await Job.updateOne({_id: jobID}, updatedFields)
 
         res.json({message: 'Successfully reposted job.'})
     } catch (error) {

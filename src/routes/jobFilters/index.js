@@ -6,22 +6,17 @@ const JobFilter = require('../../models/JobFilter')
 const {generateMongoFilterFromJobFilters} = require('../jobs/utils')
 const Subscription = require('../../models/Subscription')
 const {SUBSCRIPTION_TIERS} = require('../../models/Subscription/constants')
+const { getUserHasCandidatePremium } = require('../membership/utils')
 
 // GET
 
 router.get('/users/:userID', async (req, res) => {
     const {userID} = req.params
 
-    const subscriptionFilter = {
-        user: userID,
-        tier: SUBSCRIPTION_TIERS.candidatePremium,
-        status: 'active'
-    }
-
     try {
-        const subscriptionCount = await Subscription.countDocuments(subscriptionFilter)
+        const userHasCandidatePremium = await getUserHasCandidatePremium(userID)
 
-        if (subscriptionCount == 0) {
+        if (!userHasCandidatePremium) {
             res.json([])
             return
         }

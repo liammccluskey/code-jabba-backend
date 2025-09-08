@@ -5,7 +5,7 @@ const getUserHasRecruiterPremium = async (userID) => {
     const subscriptionFilter = {user: userID, status: 'active', tier: SUBSCRIPTION_TIERS.recruiterPremium}
 
     try {
-        const subscriptionsCount = await Subscription.find(subscriptionFilter)
+        const subscriptionsCount = await Subscription.countDocuments(subscriptionFilter)
 
         return subscriptionsCount >= 1
     } catch (error) {
@@ -13,6 +13,20 @@ const getUserHasRecruiterPremium = async (userID) => {
     }
 }
 
+const getUserHasCandidatePremium = async (userID) => {
+    const subscriptionFilter = {user: userID, status: 'active', tier: SUBSCRIPTION_TIERS.candidatePremium}
+
+    try {
+        const subscriptionsCount = await Subscription.countDocuments(subscriptionFilter)
+
+        return subscriptionsCount >= 1
+    } catch (error) {
+        throw error
+    }
+}
+
+
 module.exports = {
-    getUserHasRecruiterPremium
+    getUserHasRecruiterPremium,
+    getUserHasCandidatePremium
 }

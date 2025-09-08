@@ -36,7 +36,8 @@ const LANGUAGES = [
     'Golang',
     'Perl',
     'Rust',
-    'R'
+    'R',
+    'Matlab'
 ]
 
 const SKILLS = [
