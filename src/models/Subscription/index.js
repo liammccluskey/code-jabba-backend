@@ -9,7 +9,7 @@ const SubscriptionSchema = mongoose.Schema({
         index: true
     },
     tier: {
-        type: String,
+        type: String, // candidatePremium | recruiterPremium | recruiterEnterprise
         required: true,
     },
     stripeCustomerID: {
