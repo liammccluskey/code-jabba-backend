@@ -91,8 +91,8 @@ app.use('/applications', applicationsRoute)
 const contactUsRoute = require('./src/routes/contactus')
 app.use('/contact-us', contactUsRoute)
 
-// const statsRoute = require('./src/routes/stats')
-// app.use('/stats', statsRoute)
+const statsRoute = require('./src/routes/stats')
+app.use('/stats', statsRoute)
 
 const eventsRoute = require('./src/routes/events')
 app.use('/events', eventsRoute)
