@@ -150,6 +150,16 @@ router.post('/', async (req, res) => {
         : new User(req.body)
 
     try {
+        const usersCount = await User.countDocuments({email: req.body.email})
+        if (usersCount >= 1) {
+            res.status(400).json({message: 'There is already a user that exists with that email.'})
+            return
+        }
+    } catch (error) {
+        res.status(500).json({message: 'An error occured during you account registration. Please try again later.'})
+    }
+
+    try {
         await user.save()
         res.json({message: `Welcome to ${process.env.SITE_NAME}.`, userID: user._id})
 

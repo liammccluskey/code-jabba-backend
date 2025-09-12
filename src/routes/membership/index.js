@@ -22,11 +22,6 @@ router.patch('/cancel-subscription', async (req, res) => {
         if (subscription && subscription.status === 'active') {
             const {stripeSubscriptionID, tier} = subscription
 
-            const sub = await stripe.subscriptions.retrieve(stripeSubscriptionID)
-            console.log(JSON.stringify(
-                {status: sub.status}
-            , null, 4))
-
             await stripe.subscriptions.update(stripeSubscriptionID, {cancel_at_period_end: true})
 
             res.json({message: 'Successfully cancelled your subscription. You should receive an email shortly confirming your subscription cancellation.'})
@@ -50,12 +45,11 @@ router.patch('/cancel-subscription', async (req, res) => {
 router.post('/create-checkout-session', async (req, res) => {
     const {userID, subscriptionTier} = req.body
 
-    console.log('reached create checkout session endpoint')
-
     const subscriptionPriceID = SUBSCRIPTION_PRICE_IDS[subscriptionTier]
 
     if (!subscriptionPriceID) {
         res.status(400).json({message: 'Received an invalid subscription tier.'})
+        return
     }
 
     let stripeCustomerID = null

@@ -28,5 +28,5 @@ const getUserHasCandidatePremium = async (userID) => {
 
 module.exports = {
     getUserHasRecruiterPremium,
-    getUserHasCandidatePremium
+    getUserHasCandidatePremium,
 }
