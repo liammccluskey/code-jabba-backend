@@ -4,7 +4,6 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 require('dotenv/config')
 const qs = require('qs')
-const bodyParser = require('body-parser')
 
 const {hasAdminPrivileges} = require('./src/routes/admin/utils')
 

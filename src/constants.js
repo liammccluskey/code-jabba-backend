@@ -19,6 +19,11 @@ const STRIPE_SECRET_KEY = {
     PROD: process.env.STRIPE_SECRET_KEY_LIVE
 }[process.env.PROFILE_ENV]
 
+const STRIPE_WEBHOOK_SECRET = {
+    DEV: process.env.STRIPE_WEBHOOK_SECRET_TEST,
+    PROD: process.env.STRIPE_SECRET_KEY_LIVE,
+}[process.env.PROFILE_ENV]
+
 const CODE_JABBA_DOMAIN = {
     DEV: process.env.DOMAIN_DEV,
     PROD: process.env.DOMAIN_PROD,
@@ -28,5 +33,6 @@ module.exports = {
     MAX_PAGE_SIZE,
     PAGE_SIZES,
     STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET,
     CODE_JABBA_DOMAIN
 }

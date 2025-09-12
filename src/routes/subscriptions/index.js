@@ -4,7 +4,7 @@ const bodyParser = require('body-parser')
 
 const {SUBSCRIPTION_TIERS} = require('../../models/Subscription/constants')
 const Subscription = require('../../models/Subscription')
-const { STRIPE_SECRET_KEY } = require('../../constants')
+const { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } = require('../../constants')
 const { logEvent } = require('../events/utils')
 const { EVENTS } = require('../events/constants')
 const {sendNotificationIfEnabled} = require('../../utils/notifications')
@@ -20,7 +20,7 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
         event = stripe.webhooks.constructEvent(
             req.body,
             signature,
-            process.env.STRIPE_WEBHOOK_SECRET
+            STRIPE_WEBHOOK_SECRET
         )
     } catch (err) {
         console.error('Webhook signature verification failed', err.message)
@@ -121,10 +121,6 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req
             case 'invoice.payment_failed': {
                 const invoice = event.data.object
                 const customerID = invoice.customer
-
-                console.log(JSON.stringify(
-                    {invoice}
-                , null, 4))
 
                 const subscription = await Subscription.findOneAndUpdate(
                     { stripeCustomerID: customerID },
