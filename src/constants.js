@@ -21,7 +21,7 @@ const STRIPE_SECRET_KEY = {
 
 const STRIPE_WEBHOOK_SECRET = {
     DEV: process.env.STRIPE_WEBHOOK_SECRET_TEST,
-    PROD: process.env.STRIPE_SECRET_KEY_LIVE,
+    PROD: process.env.STRIPE_WEBHOOK_SECRET_LIVE,
 }[process.env.PROFILE_ENV]
 
 const CODE_JABBA_DOMAIN = {
