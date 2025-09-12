@@ -16,13 +16,18 @@ router.patch('/cancel-subscription', async (req, res) => {
 
     try {
         const subscription = await Subscription.findOne({user: userID})
-            .select('stripeSubscriptionID tier')
+            .select('stripeSubscriptionID tier status')
             .lean()
         
-        if (subscription) {
+        if (subscription && subscription.status === 'active') {
             const {stripeSubscriptionID, tier} = subscription
 
             await stripe.subscriptions.update(stripeSubscriptionID, {cancel_at_period_end: true})
+
+            const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionID)
+            console.log(JSON.stringify(
+                {status: subscription.status}
+            , null, 4))
 
             res.json({message: 'Successfully cancelled your subscription. You should receive an email shortly confirming your subscription cancellation.'})
         
