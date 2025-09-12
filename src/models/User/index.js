@@ -71,8 +71,6 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: false,
         default: undefined,
-        unique: true,
-        sparese: true,
     },
     githubURL: {
         type: String,
@@ -235,5 +233,6 @@ UserSchema.index(
 )
 
 UserSchema.index({ phoneNumber: 1 }, { unique: true, sparse: true })
+UserSchema.index({ linkedInURL: 1 }, { unique: true, sparse: true })
 
 module.exports = mongoose.model('User', UserSchema) 
