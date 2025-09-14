@@ -232,7 +232,7 @@ UserSchema.index(
     }
 )
 
-UserSchema.index({ phoneNumber: 1 }, { unique: true, sparse: true })
+// UserSchema.index({ phoneNumber: 1 }, { unique: true, sparse: true })
 UserSchema.index({ linkedInURL: 1 }, { unique: true, sparse: true })
 
 module.exports = mongoose.model('User', UserSchema) 

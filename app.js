@@ -99,6 +99,9 @@ app.use('/events', eventsRoute)
 const jobFiltersRoute = require('./src/routes/jobFilters')
 app.use('/job-filters', jobFiltersRoute)
 
+const jobPostViewsRoute = require('./src/routes/jobPostViews')
+app.use('/job-post-views', jobPostViewsRoute)
+
 
 const connectToMongoDB = async () => {
     try {
