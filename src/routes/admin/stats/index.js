@@ -69,6 +69,10 @@ router.get('/events', async (req, res) => {
 
         eventsData.sort((a, b) => b.count - a.count)
 
+        console.log(JSON.stringify(
+            {timeframe, eventsData}
+        , null, 4))
+
         res.json(eventsData)
     } catch (error) {
         console.log(error)
