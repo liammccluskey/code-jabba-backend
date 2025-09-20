@@ -58,7 +58,6 @@ router.get('/events', async (req, res) => {
 
         for (let i = 0; i < events.length; i++) {
             const eventID = events[i]
-            console.log(eventID || 'no event id')
             const eventCount = await Event.countDocuments({
                 event: eventID,
                 ...timeframeFilter
@@ -68,10 +67,6 @@ router.get('/events', async (req, res) => {
         }
 
         eventsData.sort((a, b) => b.count - a.count)
-
-        console.log(JSON.stringify(
-            {timeframe, eventsData}
-        , null, 4))
 
         res.json(eventsData)
     } catch (error) {
