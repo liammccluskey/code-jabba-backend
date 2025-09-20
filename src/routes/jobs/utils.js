@@ -89,7 +89,7 @@ const generateMongoFilterFromJobFilters = ({
             includedSkills.length && !excludedSkills.length ? { languages: { $in: includedSkills } } : {},
             !includedSkills.length && excludedSkills.length ? { languages: { $nin: excludedSkills } } : {},
             
-            [0, '0'].includes(salaryMin) ? {} : {salaryType: { $nin: 'not-provided' }},
+            [0, '0'].includes(salaryMin) ? {} : {salaryType: { $neq: 'not-provided' }},
             [0, '0'].includes(salaryMin) ? {} : {estimatedSalaryMax: { $gte: Number(salaryMin)} },
             sponsorsVisa.length ? { sponsorsVisa: { $in: sponsorsVisa }} : {},
             companyID ? {company: companyID} : {},
