@@ -1,22 +1,20 @@
 const express = require('express')
 const router = express.Router()
+const moment = require('moment')
 
-const User = require('../../models/User')
-const Application = require('../../models/Application')
 const Job = require('../../models/Job')
 
 router.get('/landing-stats', async (req, res) => {
+    const todaysJobsFilter = {
+        createdAt: { $gte: moment().startOf('day').toDate() }
+    }
     try {
-        const applicationsCount = await Application.countDocuments()
-        const jobsCount = await Job.countDocuments({archived: false})
-        const candidatesCount = await User.countDocuments({isRecruiter: false})
-        const recruitersCount = await User.countDocuments({isRecruiter: true})
+        const totalActiveJobsCount = await Job.countDocuments({archived: false})
+        const jobsPostedTodayCount = await Job.countDocuments(todaysJobsFilter)
 
         res.json({
-            applicationsCount,
-            jobsCount,
-            candidatesCount,
-            recruitersCount
+            totalActiveJobsCount,
+            jobsPostedTodayCount
         }) 
     } catch (error) {
         console.log(error)
