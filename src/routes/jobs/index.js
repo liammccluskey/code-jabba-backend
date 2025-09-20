@@ -114,7 +114,7 @@ router.get('/candidate-search', async (req, res) => {
     } = req.query
     const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
 
-    const mongoFilterFromJobFilters = generateMongoFilterFromJobFilters({
+    let filter = generateMongoFilterFromJobFilters({
         datePosted,
         employmentTypes,
         settings,
@@ -131,10 +131,9 @@ router.get('/candidate-search', async (req, res) => {
         requiresClearance,
         companyID,
     })
-
-    const filter = {
+    filter = {
         archived: false,
-        ...mongoFilterFromJobFilters
+        ...filter
     }
 
     try {
