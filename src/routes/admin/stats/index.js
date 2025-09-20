@@ -31,22 +31,22 @@ router.get('/events', async (req, res) => {
     const timeframeFilter = {
         day: {
             createdAt: {
-                $gte: moment().startOf('day')
+                $gte: moment().startOf('day').toDate()
             }
         },
         week: {
             createdAt: {
-                $gte: moment().subtract(1, 'week')
+                $gte: moment().subtract(1, 'week').toDate()
             }
         },
         month: {
             createdAt: {
-                $gte: moment().subtract(1, 'month')
+                $gte: moment().subtract(1, 'month').toDate()
             }
         },
         year: {
             createdAt: {
-                $gte: moment().subtract(1, 'year')
+                $gte: moment().subtract(1, 'year').toDate()
             }
         },
         alltime: {},
