@@ -9,15 +9,6 @@ const {percentDelta} = require('../../../utils/misc')
 // GET Routes
 
 //  Get paginated bug reports
-//  optional query fields
-//      - pagesize
-//      - title
-//      - resolved
-//      - highPriority
-//      - archived
-//  required query fields
-//      - page
-//      - sortby
 router.get('/search', async (req, res) => {
     const {
         pagesize = PAGE_SIZES.bugReports,
@@ -26,7 +17,7 @@ router.get('/search', async (req, res) => {
         resolved=undefined,
         highPriority=undefined,
         archived=undefined,
-        title
+        title=''
     } = req.query
 
     const pageSize = Math.min(MAX_PAGE_SIZE, pagesize)
@@ -34,7 +25,7 @@ router.get('/search', async (req, res) => {
         ...(resolved === undefined ? {} : {resolved}),
         ...(highPriority ? {highPriority: true} : {}),
         ...(archived ? {archived: true} : {}),
-        ...(!!title ? {title} : {})
+        ...(title.length ? {$text: {$search: title}} : {})
     }
 
     try {

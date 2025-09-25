@@ -110,6 +110,7 @@ const connectToMongoDB = async () => {
             {
                 useNewUrlParser: true, 
                 useUnifiedTopology: true,
+                autoIndex: true
             },
         )
         console.log('connected to DB')

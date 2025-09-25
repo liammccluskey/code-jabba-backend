@@ -45,4 +45,6 @@ const BugReportSchema = mongoose.Schema({
     }
 }, {timestamps: true})
 
+BugReportSchema.index({ title: 'text' })
+
 module.exports = mongoose.model('BugReport', BugReportSchema)
