@@ -232,11 +232,7 @@ router.post('/job-post-service', async (req, res) => {
     const {job} = req.body
     const {companyName} = job
 
-    const companyFilter = {
-        $text: {
-            $search : companyName
-        }
-    }
+    const companyFilter = { name: companyName }
     let companyID = null
     const recruiterID = process.env.MY_MONGO_USER_ID
 
@@ -248,7 +244,7 @@ router.post('/job-post-service', async (req, res) => {
 
     // find companyID, create new company if it doesn't exist
     try {
-        const [company=null] = await Company.find(companyFilter)
+        const company = await Company.findOne(companyFilter)
             .select('_id')
             .lean()
 
@@ -284,7 +280,7 @@ router.post('/job-post-service', async (req, res) => {
         company: companyID,
         title: job.title,
         location: job.location,
-        archived: false
+        archived: false 
     }
 
     try {

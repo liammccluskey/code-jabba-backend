@@ -48,7 +48,7 @@ router.post('/', async (req, res) => {
 
         res.status(201).json({message: 'Successfully saved job post view.'})
     } catch (error) {
-        // console.log(error)
+        console.log(error)
         res.status(500).json({message: 'Failed to save job post view.'})
     }
 })
